@@ -1,3 +1,4 @@
+import Connect from '../components/Connect'
 import { mTabs } from '../models/mTabs'
 
 @Entry
@@ -29,7 +30,7 @@ struct Index {
       activeImg: $r('app.media.tabbar_my_active'),
     }
   ]
-  @State currentIndex: number = 0
+  @State currentIndex: number = 1
 
   @Builder
   tabsBuilder(item: mTabs) {
@@ -53,7 +54,7 @@ struct Index {
             if (item.name === 'mChat') {
               Text('聊天页面')
             } else if (item.name === 'connect') {
-              Text('通讯录页面')
+              Connect()
             } else if (item.name === 'discover') {
               Text('发现页面')
             } else if (item.name === 'my') {
