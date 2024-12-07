@@ -30,7 +30,12 @@ export default struct Message {
         .layoutWeight(1)
     }
     .direction(this.messageItem.sender.userId === currentUser.userId ? Direction.Rtl : Direction.Ltr)
-    .padding({ top: 20, bottom: 10 })
+    .padding({
+      top: 20,
+      bottom: 10,
+      left: 10,
+      right: 10
+    })
     .width('100%')
     .alignItems(VerticalAlign.Top)
   }

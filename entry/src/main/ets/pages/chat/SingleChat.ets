@@ -3,6 +3,7 @@ import { router } from '@kit.ArkUI'
 import BottomInput from '../../components/BottomInput'
 import Message from '../../components/Message'
 import { MessageInfo, mMessageModel } from '../../models/mMessage'
+import { getMessageInfo } from '../../api'
 
 @Entry
 @Component
@@ -63,6 +64,8 @@ struct SingleChat {
       })
   ]
   @State sendText: string = ''
+  scroller: Scroller = new Scroller()
+  @State receiverInput: boolean = false
 
   aboutToAppear(): void {
     this.receiver = router.getParams() as UsersInfo
@@ -77,13 +80,35 @@ struct SingleChat {
     } as MessageInfo)
 
     this.messageList.push(message)
+
+    // 自动定位到最后一条消息
+    this.scroller.scrollEdge(Edge.Bottom)
+
+    this.getMessage(sendText)
+  }
+
+  // 获取机器人回复信息
+  async getMessage(keyword: string) {
+    this.receiverInput = true
+    let res = await getMessageInfo(keyword)
+    let message = new mMessageModel({
+      connectUser: this.receiver,
+      messageContent: res.info.text,
+      sender: this.receiver
+    } as MessageInfo)
+
+    this.messageList.push(message)
+
+    this.receiverInput = false
+    // 自动定位到最后一条消息
+    this.scroller.scrollEdge(Edge.Bottom)
   }
 
   build() {
     Column() {
       Row() {
         Stack({ alignContent: Alignment.Start }) {
-          Text(`${this.receiver.userName}`)
+          Text(this.receiverInput ? '对方正在输入...' : `${this.receiver.userName}`)
             .fontSize(20)
             .textAlign(TextAlign.Center)
             .width('100%')
@@ -99,7 +124,7 @@ struct SingleChat {
       .height(50)
 
       // 聊天内容显示
-      List() {
+      List({ scroller: this.scroller }) {
         ForEach(this.messageList, (item: mMessageModel) => {
           ListItem() {
             Message({ messageItem: item })

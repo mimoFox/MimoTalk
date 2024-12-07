@@ -56,10 +56,22 @@ export default struct BottomInput {
         Row({ space: 10 }) {
           Image($r('app.media.emoji'))
             .width(25).height(25)
-          Image($r('app.media.plus'))
-            .width(25).height(25)
+          if (this.sendText != '') {
+            Button('发送')
+              .height(40)
+              .layoutWeight(1)
+              .fontColor($r('app.color.white'))
+              .backgroundColor($r('app.color.second_primary'))
+              .type(ButtonType.Normal)
+              .borderRadius(5)
+              .stateEffect(true)
+          } else {
+            Image($r('app.media.plus'))
+              .width(25).height(25)
+          }
         }
-        .width(60)
+        .width(this.sendText === '' ? 60 : 100)
+        .animation({ duration: 300 })
       }
       .width('100%')
       .height(60)
