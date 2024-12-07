@@ -1,22 +1,89 @@
-import { UsersInfo } from '../../models/mUsers'
+import { currentUser, UsersInfo } from '../../models/mUsers'
 import { router } from '@kit.ArkUI'
 import BottomInput from '../../components/BottomInput'
+import Message from '../../components/Message'
+import { MessageInfo, mMessageModel } from '../../models/mMessage'
 
 @Entry
 @Component
 struct SingleChat {
-  @State userItem: UsersInfo = {} as UsersInfo
+  @State receiver: UsersInfo = {} as UsersInfo
+  @State messageList: mMessageModel[] = [
+    new mMessageModel(
+      {
+        id: '1',
+        sender: currentUser,
+        sendTime: 123586489,
+        sourceFilePath: '',
+        sourceDuration: 0,
+        messageType: 0,
+        messageContent: '你好，在吗？',
+        connectUser: currentUser
+      }),
+    new mMessageModel(
+      {
+        id: '2',
+        sender: {
+          userId: 'Mimo',
+          userName: 'Mimo',
+          avatar: 'https://iknow-pic.cdn.bcebos.com/96dda144ad345982c29d3c0f1ef431adcbef841c'
+        },
+        sendTime: 123586489,
+        sourceFilePath: '',
+        sourceDuration: 0,
+        messageType: 0,
+        messageContent: '怎么了？',
+        connectUser: currentUser
+      }),
+    new mMessageModel(
+      {
+        id: '3',
+        sender: currentUser,
+        sendTime: 123586489,
+        sourceFilePath: '',
+        sourceDuration: 0,
+        messageType: 0,
+        messageContent: '要不要出来喝一杯？',
+        connectUser: currentUser
+      }),
+    new mMessageModel(
+      {
+        id: '4',
+        sender: {
+          userId: 'Mimo',
+          userName: 'Mimo',
+          avatar: 'https://iknow-pic.cdn.bcebos.com/96dda144ad345982c29d3c0f1ef431adcbef841c'
+        },
+        sendTime: 123586489,
+        sourceFilePath: '',
+        sourceDuration: 0,
+        messageType: 0,
+        messageContent: '好，老地方见',
+        connectUser: currentUser
+      })
+  ]
+  @State sendText: string = ''
 
   aboutToAppear(): void {
-    this.userItem = router.getParams() as UsersInfo
-    console.log('userItem' + JSON.stringify(this.userItem))
+    this.receiver = router.getParams() as UsersInfo
+    console.log('userItem' + JSON.stringify(this.receiver))
+  }
+
+  sendMessage(sendText: string) {
+    let message = new mMessageModel({
+      connectUser: this.receiver,
+      messageContent: sendText,
+      sender: currentUser
+    } as MessageInfo)
+
+    this.messageList.push(message)
   }
 
   build() {
     Column() {
       Row() {
         Stack({ alignContent: Alignment.Start }) {
-          Text(`${this.userItem.userName}`)
+          Text(`${this.receiver.userName}`)
             .fontSize(20)
             .textAlign(TextAlign.Center)
             .width('100%')
@@ -32,12 +99,25 @@ struct SingleChat {
       .height(50)
 
       // 聊天内容显示
+      List() {
+        ForEach(this.messageList, (item: mMessageModel) => {
+          ListItem() {
+            Message({ messageItem: item })
+          }
+        })
+      }
+      .layoutWeight(1)
+      .backgroundColor($r('app.color.second_back_color'))
 
-      Blank()
       // 底部输入栏
-      BottomInput()
+      BottomInput({
+        sendMessage: (sendText: string) => {
+          this.sendMessage(sendText)
+        }
+      })
     }
     .height('100%')
     .width('100%')
+
   }
 }

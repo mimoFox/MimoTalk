@@ -31,3 +31,9 @@ export const defaultUserInfo: UsersInfo[] = [
     avatar: 'https://iknow-pic.cdn.bcebos.com/4afbfbedab64034faf14fb98bdc379310b551d56'
   }
 ]
+
+export const currentUser: UsersInfo = {
+  userId: 'root',
+  userName: '',
+  avatar: 'https://iknow-pic.cdn.bcebos.com/96dda144ad345982c29d3c0f1ef431adcbef841c'
+}

@@ -1,6 +1,11 @@
+import { promptAction } from '@kit.ArkUI'
+
 @Component
 export default struct BottomInput {
   @State showVoice: boolean = false
+  @State sendText: string = ''
+  sendMessage: (sendText: string) => void = () => {
+  }
 
   build() {
     Column() {
@@ -25,11 +30,26 @@ export default struct BottomInput {
             .type(ButtonType.Normal)
             .borderRadius(4)
         } else {
-          TextInput()
+          TextInput({ text: $$this.sendText })
+            .id('input')
+            .focusable(true)
             .height(35)
             .layoutWeight(1)
             .backgroundColor($r('app.color.white'))
             .borderRadius(4)
+            .onSubmit(() => {
+              if (this.sendText) {
+                this.sendMessage(this.sendText)
+                this.sendText = ''
+                focusControl.requestFocus('input')
+              } else {
+                promptAction.showToast({
+                  message: '发送内容不能为空！',
+                  duration: 500,
+                  bottom: 200
+                })
+              }
+            })
         }
 
 
