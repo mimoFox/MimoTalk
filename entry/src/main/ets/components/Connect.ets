@@ -1,18 +1,26 @@
 import { defaultUserInfo, UsersInfo } from '../models/mUsers'
+import { router } from '@kit.ArkUI'
 
 @Component
 export default struct Connect {
   @State userList: UsersInfo[] = []
+  @State @Watch('searchTextChanged') searchText: string = ''
 
   aboutToAppear(): void {
     this.userList = defaultUserInfo
+  }
+
+  searchTextChanged() {
+    this.userList = defaultUserInfo.filter((user: UsersInfo) => {
+      return user.userName.includes(this.searchText)
+    })
   }
 
   build() {
     Column() {
       // 搜索栏
       Row() {
-        Search({ placeholder: '搜索' })
+        Search({ placeholder: '搜索', value: $$this.searchText })
           .backgroundColor($r('app.color.white'))
           .borderRadius(8)
           .height(35)
@@ -48,6 +56,13 @@ export default struct Connect {
             normal: {
               .backgroundColor($r('app.color.white'))
             }
+          })
+          .onClick(() => {
+
+            router.pushUrl({
+              url: 'pages/chat/SingleChat',
+              params: user
+            })
           })
 
         }, (user: UsersInfo) => user.userId)
