@@ -70,6 +70,8 @@ struct SingleChat {
 
   aboutToAppear(): void {
     this.receiver = router.getParams() as UsersInfo
+
+    // 获取当前聊天对象的所有聊天记录
     this.messageList = preferencesUtils.getMessageById(this.receiver.userId)
     console.log('userItem' + JSON.stringify(this.receiver))
   }

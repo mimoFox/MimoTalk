@@ -2,6 +2,7 @@ import { mMessageModel } from '../models/mMessage';
 import { preferencesUtils } from '../utils/preferences/preferencesUtils';
 import { formatTime } from '../utils/Utils';
 import { emitter } from '@kit.BasicServicesKit';
+import { router } from '@kit.ArkUI';
 
 @Component
 export default struct ChatList {
@@ -19,7 +20,7 @@ export default struct ChatList {
 
   build() {
     Column() {
-      List() {
+      List({ space: 10 }) {
         ForEach(this.lastMessageList, (message: mMessageModel) => {
           ListItem() {
             Row({ space: 10 }) {
@@ -65,6 +66,13 @@ export default struct ChatList {
             normal: {
               .backgroundColor($r('app.color.white'))
             }
+          })
+          .onClick(() => {
+
+            router.pushUrl({
+              url: 'pages/chat/SingleChat',
+              params: message.connectUser // 传递接收者信息
+            })
           })
         })
       }

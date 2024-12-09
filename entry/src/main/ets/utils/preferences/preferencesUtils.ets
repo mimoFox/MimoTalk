@@ -33,6 +33,24 @@ export class preferencesUtils {
     emitter.emit(preferencesUtils.storeName)
   }
 
+
+  //移除某个人的一条数据
+  static async removeMessageById(userId: string) {
+    // 获取到创建的仓库
+    const store = preferencesUtils.getStore(userId)
+
+    store.deleteSync(userId)
+
+    await store.flush()
+  }
+
+  //移除某个人的所有数据
+  static removeAllMessageById(userId: string) {
+    preferences.deletePreferences(preferencesUtils.context, {
+      name: `${preferencesUtils.storeName}_${userId}`
+    })
+  }
+
   //获取某个人的所有数据
   static getMessageById(userId: string) {
     // 获取到创建的仓库
@@ -55,10 +73,6 @@ export class preferencesUtils {
     }
     return []
   }
-
-  //移除某个人的一条数据
-
-  //移除某个人的所有数据
 
   //获取所有人的最后一条数据
   static getAllLastMessage() {
