@@ -1,5 +1,6 @@
 import { preferences } from '@kit.ArkData'
 import { mMessageModel } from '../../models/mMessage'
+import { defaultUserInfo, UsersInfo } from '../../models/mUsers'
 
 export class preferencesUtils {
   static context: Context
@@ -22,17 +23,52 @@ export class preferencesUtils {
     // 获取到创建的仓库
     const store = preferencesUtils.getStore(userId)
     // 添加数据
-    store.putSync(message.id, message)
+    // 注意：JSON.stringify(message) 要转换成json格式
+    store.putSync(message.id, JSON.stringify(message))
     // 写入磁盘
     await store.flush()
   }
 
   //获取某个人的所有数据
+  static getMessageById(userId: string) {
+    // 获取到创建的仓库
+    const store = preferencesUtils.getStore(userId)
+    const all = store.getAllSync() as object
+    if (all) {
+      try {
+        const messageList = Object.values(all).map((item: string) => JSON.parse(item) as mMessageModel)
+
+        console.log('mList', JSON.stringify(messageList))
+
+        // 排序聊天记录列表
+        messageList.sort((a, b) => a.sendTime - b.sendTime)
+
+        return messageList
+
+      } catch (err) {
+        console.log('errMessage' + err)
+      }
+    }
+    return []
+  }
 
   //移除某个人的一条数据
 
   //移除某个人的所有数据
 
   //获取所有人的最后一条数据
+  static getAllLastMessage() {
+    // 所有联系人的最后一条消息的列表
+    const lastMessageList: mMessageModel[] = []
 
+    // 遍历所有有聊天记录的消息
+    defaultUserInfo.forEach((user: UsersInfo) => {
+      const messageList = preferencesUtils.getMessageById(user.userId)
+      if (messageList.length) {
+        lastMessageList.push(messageList[messageList.length-1])
+      }
+    })
+    lastMessageList.sort((a, b) => a.sendTime - b.sendTime)
+    return lastMessageList
+  }
 }

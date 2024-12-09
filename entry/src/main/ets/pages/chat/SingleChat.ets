@@ -70,6 +70,7 @@ struct SingleChat {
 
   aboutToAppear(): void {
     this.receiver = router.getParams() as UsersInfo
+    this.messageList = preferencesUtils.getMessageById(this.receiver.userId)
     console.log('userItem' + JSON.stringify(this.receiver))
   }
 

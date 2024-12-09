@@ -34,6 +34,6 @@ export const defaultUserInfo: UsersInfo[] = [
 
 export const currentUser: UsersInfo = {
   userId: 'root',
-  userName: '',
+  userName: 'Mimo',
   avatar: 'https://iknow-pic.cdn.bcebos.com/96dda144ad345982c29d3c0f1ef431adcbef841c'
 }
