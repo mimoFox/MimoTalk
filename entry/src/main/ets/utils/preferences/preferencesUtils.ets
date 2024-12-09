@@ -1,6 +1,7 @@
 import { preferences } from '@kit.ArkData'
 import { mMessageModel } from '../../models/mMessage'
 import { defaultUserInfo, UsersInfo } from '../../models/mUsers'
+import { emitter } from '@kit.BasicServicesKit'
 
 export class preferencesUtils {
   static context: Context
@@ -27,6 +28,9 @@ export class preferencesUtils {
     store.putSync(message.id, JSON.stringify(message))
     // 写入磁盘
     await store.flush()
+
+    // 发布消息
+    emitter.emit(preferencesUtils.storeName)
   }
 
   //获取某个人的所有数据

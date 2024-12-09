@@ -1,6 +1,7 @@
 import { mMessageModel } from '../models/mMessage';
 import { preferencesUtils } from '../utils/preferences/preferencesUtils';
 import { formatTime } from '../utils/Utils';
+import { emitter } from '@kit.BasicServicesKit';
 
 @Component
 export default struct ChatList {
@@ -8,6 +9,12 @@ export default struct ChatList {
 
   aboutToAppear() {
     this.lastMessageList = preferencesUtils.getAllLastMessage()
+
+    // 订阅消息
+    emitter.on(preferencesUtils.storeName, () => {
+      //重新刷新聊天列表
+      this.lastMessageList = preferencesUtils.getAllLastMessage()
+    })
   }
 
   build() {
