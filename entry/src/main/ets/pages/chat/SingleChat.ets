@@ -4,6 +4,7 @@ import BottomInput from '../../components/BottomInput'
 import Message from '../../components/Message'
 import { MessageInfo, mMessageModel } from '../../models/mMessage'
 import { getMessageInfo } from '../../api'
+import { preferencesUtils } from '../../utils/preferences/preferencesUtils'
 
 @Entry
 @Component
@@ -18,7 +19,7 @@ struct SingleChat {
         sourceFilePath: '',
         sourceDuration: 0,
         messageType: 0,
-        messageContent: '你好，在吗？',
+        messageContent: '在吗？',
         connectUser: currentUser
       }),
     new mMessageModel(
@@ -81,6 +82,9 @@ struct SingleChat {
 
     this.messageList.push(message)
 
+    // 存储聊天记录
+    preferencesUtils.addMessage(this.receiver.userId, message)
+
     // 自动定位到最后一条消息
     this.scroller.scrollEdge(Edge.Bottom)
 
@@ -93,11 +97,14 @@ struct SingleChat {
     let res = await getMessageInfo(keyword)
     let message = new mMessageModel({
       connectUser: this.receiver,
-      messageContent: res.info.text,
+      messageContent: res?.info?.text,
       sender: this.receiver
     } as MessageInfo)
 
     this.messageList.push(message)
+
+    // 存储聊天记录
+    preferencesUtils.addMessage(this.receiver.userId, message)
 
     this.receiverInput = false
     // 自动定位到最后一条消息

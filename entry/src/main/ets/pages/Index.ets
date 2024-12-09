@@ -1,3 +1,4 @@
+import ChatList from '../components/ChatList'
 import Connect from '../components/Connect'
 import { mTabs } from '../models/mTabs'
 
@@ -30,7 +31,7 @@ struct Index {
       activeImg: $r('app.media.tabbar_my_active'),
     }
   ]
-  @State currentIndex: number = 1
+  @State currentIndex: number = 0
 
   @Builder
   tabsBuilder(item: mTabs) {
@@ -52,7 +53,7 @@ struct Index {
         ForEach(this.tabList, (item: mTabs) => {
           TabContent() {
             if (item.name === 'mChat') {
-              Text('聊天页面')
+              ChatList()
             } else if (item.name === 'connect') {
               Connect()
             } else if (item.name === 'discover') {
