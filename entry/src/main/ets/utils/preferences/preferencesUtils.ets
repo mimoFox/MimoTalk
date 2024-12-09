@@ -68,7 +68,7 @@ export class preferencesUtils {
         lastMessageList.push(messageList[messageList.length-1])
       }
     })
-    lastMessageList.sort((a, b) => a.sendTime - b.sendTime)
+    lastMessageList.sort((a, b) => b.sendTime - a.sendTime)
     return lastMessageList
   }
 }

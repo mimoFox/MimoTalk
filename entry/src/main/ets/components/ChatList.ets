@@ -1,5 +1,6 @@
-import { mMessageModel } from '../models/mMessage'
-import { preferencesUtils } from '../utils/preferences/preferencesUtils'
+import { mMessageModel } from '../models/mMessage';
+import { preferencesUtils } from '../utils/preferences/preferencesUtils';
+import { formatTime } from '../utils/Utils';
 
 @Component
 export default struct ChatList {
@@ -23,7 +24,7 @@ export default struct ChatList {
                     .fontSize(16)
                     .fontWeight(600)
                     .fontColor($r('app.color.text_primary'))
-                  Text(`${message.sendTime}`).fontSize(12).fontColor($r('app.color.text_second'))
+                  Text(`${formatTime(message.sendTime)}`).fontSize(12).fontColor($r('app.color.text_second'))
                 }
                 .width('100%')
                 .justifyContent(FlexAlign.SpaceBetween)
@@ -67,8 +68,12 @@ export default struct ChatList {
         strokeWidth: 1,
         color: $r('app.color.border_color')
       })
+      .margin({ top: 10, bottom: 10 })
+      .backgroundColor($r('app.color.white'))
     }
     .width('100%')
     .height('100%')
+    .backgroundColor($r('app.color.back_color'))
+
   }
 }
