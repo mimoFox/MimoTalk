@@ -5,6 +5,7 @@ import Message from '../../components/Message'
 import { MessageInfo, mMessageModel } from '../../models/mMessage'
 import { getMessageInfo } from '../../api'
 import { preferencesUtils } from '../../utils/preferences/preferencesUtils'
+import { emitter } from '@kit.BasicServicesKit'
 
 @Entry
 @Component
@@ -114,6 +115,14 @@ struct SingleChat {
     this.scroller.scrollEdge(Edge.Bottom)
   }
 
+  // 删除单条聊天记录
+  deleteUiMessage(messageId: string) {
+    const index = this.messageList.findIndex((item: MessageInfo) => item.id === messageId)
+    this.messageList.splice(index, 1)
+
+    emitter.emit(preferencesUtils.storeName)
+  }
+
   build() {
     Column() {
       Row() {
@@ -137,7 +146,12 @@ struct SingleChat {
       List({ scroller: this.scroller }) {
         ForEach(this.messageList, (item: mMessageModel) => {
           ListItem() {
-            Message({ messageItem: item })
+            Message({
+              messageItem: item,
+              deleteUiMessage: (messageId: string) => {
+                this.deleteUiMessage(messageId)
+              }
+            })
           }
         })
       }

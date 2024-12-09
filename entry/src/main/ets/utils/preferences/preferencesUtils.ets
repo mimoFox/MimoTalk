@@ -35,11 +35,11 @@ export class preferencesUtils {
 
 
   //移除某个人的一条数据
-  static async removeMessageById(userId: string) {
+  static async removeMessageById(userId: string, messageId: string) {
     // 获取到创建的仓库
     const store = preferencesUtils.getStore(userId)
 
-    store.deleteSync(userId)
+    store.deleteSync(messageId)
 
     await store.flush()
   }
