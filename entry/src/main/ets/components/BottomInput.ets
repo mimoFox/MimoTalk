@@ -1,4 +1,5 @@
 import { display, promptAction } from '@kit.ArkUI'
+import { mPopup } from '../models/mPopup'
 import { mVoiceStateEnum } from '../models/mVoiceStateEnum'
 import voiceRecCom from './voiceRecCom'
 
@@ -10,26 +11,91 @@ export default struct BottomInput {
   @State screenWidth: number = 0
   @State screenHeight: number = 0
   @Provide voiceState: mVoiceStateEnum = mVoiceStateEnum.RECORDING
-  //1.获取整个屏幕的宽度与高度
-  //2.获取当前手指触摸的坐标x-y
-  //3.手势拖动的时候，判断当前手指触摸的坐标x-y是否大于屏幕高度- 录音区域的高度
-  //4.如果大于 屏幕高度-录音区域的高度 说明手势拖动录音区域
-  //5.如果小于 屏暮高度-录音区域的高度 说明手势不在拖动录音区域
-
+  @State showBottomMenu: boolean = false
+  bottomMenuList: mPopup[] = [
+    {
+      icon: $r('app.media.picture'),
+      title: '图片'
+    },
+    {
+      icon: $r('app.media.camera'),
+      title: '拍摄'
+    },
+    {
+      icon: $r('app.media.postion'),
+      title: '位置'
+    },
+    {
+      icon: $r('app.media.mic'),
+      title: '语音输入'
+    },
+    {
+      icon: $r('app.media.01_collection'),
+      title: '收藏'
+    },
+    {
+      icon: $r("app.media.id_card"),
+      title: '个人名片'
+    },
+    {
+      icon: $r('app.media.file'),
+      title: '文件'
+    },
+    {
+      icon: $r('app.media.music_fill'),
+      title: '音乐'
+    }
+  ]
   sendMessage: (sendText: string) => void = () => {
   }
 
   aboutToAppear(): void {
+    //1.获取整个屏幕的宽度与高度
+    //2.获取当前手指触摸的坐标x-y
+    //3.手势拖动的时候，判断当前手指触摸的坐标x-y是否大于屏幕高度- 录音区域的高度
+    //4.如果大于 屏幕高度-录音区域的高度 说明手势拖动录音区域
+    //5.如果小于 屏暮高度-录音区域的高度 说明手势不在拖动录音区域
     this.screenWidth = px2vp(display.getDefaultDisplaySync().width)
     this.screenHeight = px2vp(display.getDefaultDisplaySync().height)
   }
 
+  // 显示弹层
   @Builder
   voiceRecBuilder() {
     Column() {
       // 语音输入组件
       voiceRecCom()
     }
+  }
+
+  // 底部菜单
+  @Builder
+  bottomMenuBuilder() {
+    GridRow({ columns: 4 }) {
+      ForEach(this.bottomMenuList, (item: mPopup) => {
+        GridCol() {
+          Column({ space: 5 }) {
+            Column() {
+              Image(item.icon).width(30).autoResize(true)
+            }
+            .height(40)
+            .width(50)
+            .justifyContent(FlexAlign.Center)
+            .alignItems(HorizontalAlign.Center)
+            .backgroundColor($r('app.color.white'))
+
+            Text(item.title)
+              .fontSize(12)
+              .fontColor($r('app.color.text_primary'))
+          }
+        }
+        .margin({ bottom: 10 })
+      })
+    }
+    .width('100%')
+    .padding(20)
+    .backgroundColor($r('app.color.bottom_color'))
+
   }
 
   // 发送消息
@@ -49,11 +115,18 @@ export default struct BottomInput {
 
   build() {
     Column() {
+
+      // 输入栏
       Row({ space: 10 }) {
         Image(!this.showVoice ? $r('app.media.voiceprint') : $r('app.media.keyboard'))
           .width(25).height(25)
           .onClick(() => {
             this.showVoice = !this.showVoice
+            if (this.showVoice) {
+              animateTo({ duration: 500 }, () => {
+                this.showBottomMenu = false
+              })
+            }
           })
           .animation({
             duration: 300,
@@ -112,13 +185,14 @@ export default struct BottomInput {
         } else {
           TextArea({ text: $$this.sendText })
             .id('input')
-            .focusable(true)
+            .focusable(!this.showBottomMenu)
             .layoutWeight(1)
             .backgroundColor($r('app.color.white'))
             .borderRadius(4)
-            .onSubmit(() => {
-
+            .onClick(() => {
+              this.showBottomMenu = false
             })
+
           // TextInput({ text: $$this.sendText })
           //   .id('input')
           //   .focusable(true)
@@ -160,6 +234,11 @@ export default struct BottomInput {
           } else {
             Image($r('app.media.plus'))
               .width(25).height(25)
+              .onClick(() => {
+                animateTo({ duration: 500 }, () => {
+                  this.showBottomMenu = !this.showBottomMenu
+                })
+              })
           }
         }
         .width(this.sendText === '' ? 60 : 100)
@@ -170,6 +249,11 @@ export default struct BottomInput {
       .padding(10)
       .backgroundColor($r('app.color.back_color'))
       .margin({ bottom: 10 })
+
+      // 底部菜单栏
+      if (this.showBottomMenu) {
+        this.bottomMenuBuilder()
+      }
     }
   }
 }
