@@ -18,6 +18,28 @@ export default struct ChatList {
     })
   }
 
+  @Builder
+  swipeBuilder(userId: string) {
+    Row() {
+      Text('删除').fontSize(20).fontColor($r('app.color.white'))
+        .textAlign(TextAlign.Center)
+        .width('100%')
+    }
+    .width(60).backgroundColor($r('app.color.danger'))
+    .height('100%')
+    .onClick(() => {
+      // 删除首选项中的数据
+      preferencesUtils.removeAllMessageById(userId)
+
+      // 删除UI界面的数据
+      const index = this.lastMessageList.findIndex((item: mMessageModel) => item.connectUser.userId === userId)
+      animateTo({ duration: 1000 }, () => {
+        this.lastMessageList.splice(index, 1)
+      })
+
+    })
+  }
+
   build() {
     Column() {
       List({ space: 10 }) {
@@ -56,23 +78,29 @@ export default struct ChatList {
             .width('100%')
             .height('100%')
             .padding({ left: 10, right: 10 })
+            .stateStyles({
+              pressed: {
+                .backgroundColor($r('app.color.back_color'))
+              },
+              normal: {
+                .backgroundColor($r('app.color.white'))
+              }
+            }) // 这个效果会跟listItem的swipeAction冲突，所以需要分开写
           }
           .width('100%')
           .height(50)
-          .stateStyles({
-            pressed: {
-              .backgroundColor($r('app.color.back_color'))
-            },
-            normal: {
-              .backgroundColor($r('app.color.white'))
-            }
-          })
+
           .onClick(() => {
 
             router.pushUrl({
               url: 'pages/chat/SingleChat',
               params: message.connectUser // 传递接收者信息
             })
+          })
+          .swipeAction({
+            end: () => {
+              this.swipeBuilder(message.connectUser.userId)
+            }
           })
         })
       }
