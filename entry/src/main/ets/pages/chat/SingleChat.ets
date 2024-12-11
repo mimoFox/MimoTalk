@@ -68,16 +68,27 @@ struct SingleChat {
   @State sendText: string = ''
   scroller: Scroller = new Scroller()
   @State receiverInput: boolean = false
-  filePath: string = ''
+  @State filePath: string = ''
+  @State messageType: MessageTypeEnum = MessageTypeEnum.TEXT
   previewImgCtrl: CustomDialogController = new CustomDialogController({
-    builder: this.previewImgBuilder,
+    builder: this.previewBuilder,
     customStyle: true
   })
 
   @Builder
-  previewImgBuilder() {
+  previewBuilder() {
     Column() {
-      Image('file://' + this.filePath).width('100%')
+      if (this.messageType === MessageTypeEnum.IMAGE) {
+        Image('file://' + this.filePath).width('100%')
+      } else if (this.messageType === MessageTypeEnum.VIDEO) {
+        Video({
+          src: 'file://' + this.filePath
+        })
+          .autoPlay(true)
+          .width('100%')
+          .height('100%')
+          .controls(false)
+      }
     }
     .width('100%')
     .height('100%')
@@ -87,8 +98,11 @@ struct SingleChat {
     })
   }
 
-  previewImg(filePath: string) {
+  previewImg(filePath: string, messageType?: MessageTypeEnum) {
     this.filePath = filePath
+    if (messageType) {
+      this.messageType = messageType
+    }
     this.previewImgCtrl.open()
   }
 
@@ -222,8 +236,8 @@ struct SingleChat {
               deleteUiMessage: (messageId: string) => {
                 this.deleteUiMessage(messageId)
               },
-              previewImg: (filePath: string) => {
-                this.previewImg(filePath)
+              previewImg: (filePath: string, messageType?: MessageTypeEnum) => {
+                this.previewImg(filePath, messageType)
               }
             })
           }
@@ -240,9 +254,9 @@ struct SingleChat {
         sendPictureMessage: (filePath: string) => {
           this.sendPictureMessage(filePath)
         },
-        sendVideoMessage:(filePath: string)=>{
+        sendVideoMessage: (filePath: string) => {
           this.sendVideoMessage(filePath)
-      }
+        }
       })
     }
     .height('100%')

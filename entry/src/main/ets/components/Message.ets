@@ -42,9 +42,10 @@ export default struct Message {
       title: '提醒'
     }
   ]
+  videoController: VideoController = new VideoController()
   deleteUiMessage: (messageId: string) => void = () => {
   }
-  previewImg: (filePath: string) => void = () => {
+  previewImg: (filePath: string, messageType?: MessageTypeEnum) => void = () => {
   }
 
   @Builder
@@ -92,18 +93,35 @@ export default struct Message {
                 .width('100%')
                 .borderRadius(4)
                 .onClick(() => {
-                  this.previewImg(this.messageItem.sourceFilePath)
+                  this.previewImg(this.messageItem.sourceFilePath, this.messageItem.messageType)
                 })
             }
             .width('40%')
             .margin({ left: 10, right: 10 })
           } else if (this.messageItem.messageType === MessageTypeEnum.VIDEO) {
             Column() {
-              Video({
-                src: 'file://' + this.messageItem.sourceFilePath
-              })
-                .width('100%')
-                .borderRadius(4)
+              Stack() {
+                Video({
+                  src: 'file://' + this.messageItem.sourceFilePath,
+
+                  controller: this.videoController
+                })
+                  .controls(false)
+                  .width('100%')
+                  .height(150)
+                  .borderRadius(4)
+                  .id(this.messageItem.id)
+                  .onPrepared(async () => {
+                    // 缓存加载预览画面
+                    await this.videoController.setCurrentTime(0.1)
+                  })
+
+                Image($r('app.media.play_fill')).width(30).height(30)
+                  .onClick(() => {
+                    this.previewImg(this.messageItem.sourceFilePath, this.messageItem.messageType)
+                    this.videoController.start()
+                  })
+              }
             }
             .width('40%')
             .margin({ left: 10, right: 10 })
