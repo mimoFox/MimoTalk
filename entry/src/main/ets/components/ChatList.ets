@@ -2,11 +2,44 @@ import { mMessageModel } from '../models/mMessage';
 import { preferencesUtils } from '../utils/preferences/preferencesUtils';
 import { formatTime } from '../utils/Utils';
 import { emitter } from '@kit.BasicServicesKit';
-import { router } from '@kit.ArkUI';
+import { promptAction, router } from '@kit.ArkUI';
+import HeaderCom from './HeaderCom';
+import { mPopup } from '../models/mPopup';
 
 @Component
 export default struct ChatList {
   @State lastMessageList: mMessageModel[] = []
+  @State showPop: boolean = false
+  @State HeaderItem: mPopup = {
+    title: '微信',
+    icon: $r('app.media.plus'),
+    popClick: () => {
+      this.showPop = !this.showPop
+    }
+  }
+  @State popList: mPopup[] = [
+    {
+      title: '发起群聊',
+      icon: $r('app.media.chat_group')
+    },
+    {
+      title: '添加朋友',
+      icon: $r('app.media.add_friend')
+    },
+    {
+      title: '扫一扫',
+      icon: $r('app.media.scan'),
+      popClick: () => {
+        promptAction.showToast({
+          message: '扫一扫'
+        })
+      }
+    },
+    {
+      title: '收付款',
+      icon: $r('app.media.pay')
+    }
+  ]
 
   aboutToAppear() {
     this.lastMessageList = preferencesUtils.getAllLastMessage()
@@ -42,6 +75,15 @@ export default struct ChatList {
 
   build() {
     Column() {
+      // 聊天列表顶部栏
+      HeaderCom({
+        item: this.HeaderItem,
+        showPop: this.showPop,
+        popList: this.popList
+      })
+
+
+      // 聊天列表
       List({ space: 10 }) {
         ForEach(this.lastMessageList, (message: mMessageModel) => {
           ListItem() {
@@ -111,7 +153,7 @@ export default struct ChatList {
         strokeWidth: 1,
         color: $r('app.color.border_color')
       })
-      .margin({ top: 10, bottom: 10 })
+      .padding({ top: 10, bottom: 10 })
       .backgroundColor($r('app.color.white'))
     }
     .width('100%')
