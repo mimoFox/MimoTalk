@@ -68,13 +68,42 @@ struct SingleChat {
   @State sendText: string = ''
   scroller: Scroller = new Scroller()
   @State receiverInput: boolean = false
+  filePath: string = ''
+  previewImgCtrl: CustomDialogController = new CustomDialogController({
+    builder: this.previewImgBuilder,
+    customStyle: true
+  })
+
+  @Builder
+  previewImgBuilder() {
+    Column() {
+      Image('file://' + this.filePath).width('100%')
+    }
+    .width('100%')
+    .height('100%')
+    .backgroundColor($r('app.color.back_color'))
+    .onClick(() => {
+      this.previewImgCtrl.close()
+    })
+  }
+
+  previewImg(filePath: string) {
+    this.filePath = filePath
+    this.previewImgCtrl.open()
+  }
 
   aboutToAppear(): void {
     this.receiver = router.getParams() as UsersInfo
 
     // 获取当前聊天对象的所有聊天记录
     this.messageList = preferencesUtils.getMessageById(this.receiver.userId)
+
     console.log('userItem' + JSON.stringify(this.receiver))
+  }
+
+  onPageShow(): void {
+    // 自动定位到最后一条消息
+    this.scroller.scrollEdge(Edge.Bottom)
   }
 
   // 发送文本消息
@@ -96,8 +125,8 @@ struct SingleChat {
     this.getMessage(sendText)
   }
 
-  // 发送图片或者视频消息
-  sendPictureVideoMessage(filePath: string) {
+  // 发送图片消息
+  sendPictureMessage(filePath: string) {
     let message = new mMessageModel({
       connectUser: this.receiver,
       messageContent: '[图片]',
@@ -114,7 +143,27 @@ struct SingleChat {
     // 自动定位到最后一条消息
     this.scroller.scrollEdge(Edge.Bottom)
 
-    // this.getMessage(filePath)
+    this.getMessage('file://' + filePath)
+  }
+
+  // 发送视频消息
+  sendVideoMessage(filePath: string) {
+    let message = new mMessageModel({
+      connectUser: this.receiver,
+      messageContent: '[视频]',
+      sender: currentUser,
+      sourceFilePath: filePath,
+      messageType: MessageTypeEnum.VIDEO
+    } as MessageInfo)
+
+    this.messageList.push(message)
+
+    // 存储聊天记录
+    preferencesUtils.addMessage(this.receiver.userId, message)
+
+    // 自动定位到最后一条消息
+    this.scroller.scrollEdge(Edge.Bottom)
+
   }
 
   // 获取机器人回复信息
@@ -172,6 +221,9 @@ struct SingleChat {
               messageItem: item,
               deleteUiMessage: (messageId: string) => {
                 this.deleteUiMessage(messageId)
+              },
+              previewImg: (filePath: string) => {
+                this.previewImg(filePath)
               }
             })
           }
@@ -185,9 +237,12 @@ struct SingleChat {
         sendMessage: (sendText: string) => {
           this.sendMessage(sendText)
         },
-        sendPictureVideoMessage: (filePath: string) => {
-          this.sendPictureVideoMessage(filePath)
-        }
+        sendPictureMessage: (filePath: string) => {
+          this.sendPictureMessage(filePath)
+        },
+        sendVideoMessage:(filePath: string)=>{
+          this.sendVideoMessage(filePath)
+      }
       })
     }
     .height('100%')

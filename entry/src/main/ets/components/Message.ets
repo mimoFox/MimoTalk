@@ -42,8 +42,9 @@ export default struct Message {
       title: '提醒'
     }
   ]
-
   deleteUiMessage: (messageId: string) => void = () => {
+  }
+  previewImg: (filePath: string) => void = () => {
   }
 
   @Builder
@@ -82,12 +83,30 @@ export default struct Message {
         .height(40)
         .borderRadius(6)
 
+
       Row() {
         Column() {
           if (this.messageItem.messageType === MessageTypeEnum.IMAGE) {
-            Image('file://' + this.messageItem.sourceFilePath)
-              .width('100%')
-              .borderRadius(4)
+            Column() {
+              Image('file://' + this.messageItem.sourceFilePath)
+                .width('100%')
+                .borderRadius(4)
+                .onClick(() => {
+                  this.previewImg(this.messageItem.sourceFilePath)
+                })
+            }
+            .width('40%')
+            .margin({ left: 10, right: 10 })
+          } else if (this.messageItem.messageType === MessageTypeEnum.VIDEO) {
+            Column() {
+              Video({
+                src: 'file://' + this.messageItem.sourceFilePath
+              })
+                .width('100%')
+                .borderRadius(4)
+            }
+            .width('40%')
+            .margin({ left: 10, right: 10 })
           } else if (this.messageItem.messageType === MessageTypeEnum.TEXT) {
             Text(this.messageItem.messageContent)
               .fontSize(14)

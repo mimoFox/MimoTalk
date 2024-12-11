@@ -5,6 +5,8 @@ import voiceRecCom from './voiceRecCom'
 import { photoAccessHelper } from '@kit.MediaLibraryKit'
 import { BusinessError } from '@kit.BasicServicesKit'
 import { fileIo } from '@kit.CoreFileKit'
+import { camera, cameraPicker as picker } from '@kit.CameraKit'
+
 
 @Component
 export default struct BottomInput {
@@ -23,13 +25,20 @@ export default struct BottomInput {
         promptAction.showToast({
           message: '选择图片'
         })
-        this.submitPictureAndVideo()
+        this.submitPicture()
 
       }
     },
     {
       icon: $r('app.media.camera'),
-      title: '拍摄'
+      title: '拍摄',
+      popClick: () => {
+        promptAction.showToast({
+          message: '拍摄图片'
+        })
+        this.submitVideo()
+
+      }
     },
     {
       icon: $r('app.media.postion'),
@@ -58,7 +67,10 @@ export default struct BottomInput {
   ]
   sendMessage: (sendText: string) => void = () => {
   }
-  sendPictureVideoMessage: (filePath: string) => void = () => {
+  sendPictureMessage: (filePath: string) => void = () => {
+  }
+
+  sendVideoMessage:(filePath: string) => void = () => {
   }
 
   aboutToAppear(): void {
@@ -128,7 +140,7 @@ export default struct BottomInput {
   }
 
   // 发送图片
-  submitPictureAndVideo() {
+  submitPicture() {
 
     try {
       // 配置选择相片的选项
@@ -156,7 +168,7 @@ export default struct BottomInput {
 
             fileIo.closeSync(file.fd)
 
-            this.sendPictureVideoMessage(filePath)
+            this.sendPictureMessage(filePath)
           })
         }
 
@@ -167,6 +179,48 @@ export default struct BottomInput {
     } catch (error) {
       let err: BusinessError = error as BusinessError;
       console.error(`选择相片失败: ${err.code}, ${err.message}`);
+    }
+  }
+
+  // 发送拍摄图片或者视频
+  async submitVideo() {
+    try {
+      let pickerProfile: picker.PickerProfile = {
+        cameraPosition: camera.CameraPosition.CAMERA_POSITION_BACK
+      };
+      let pickerResult: picker.PickerResult = await picker.pick(getContext(),
+        [picker.PickerMediaType.PHOTO, picker.PickerMediaType.VIDEO], pickerProfile);
+      console.log("拍摄图片或者视频:" + JSON.stringify(pickerResult));
+
+      if (pickerResult.mediaType === 'photo' && pickerResult.resultUri != '') {
+        // 将图片保存到沙箱
+        // 如果路径存在则打开，不存在则创建
+        let filePath = getContext().filesDir + '/' + Date.now() + '_mimo' + '.jpg'
+        // 打开文件
+        let file = fileIo.openSync(pickerResult.resultUri, fileIo.OpenMode.READ_ONLY)
+
+        fileIo.copyFileSync(file.fd, filePath)
+
+        fileIo.closeSync(file.fd)
+
+        this.sendPictureMessage(filePath)
+      } else {
+        // 将视频保存到沙箱
+        // 如果路径存在则打开，不存在则创建
+        let filePath = getContext().filesDir + '/' + Date.now() + '_mimo' + '.mp4'
+        // 打开文件
+        let file = fileIo.openSync(pickerResult.resultUri, fileIo.OpenMode.READ_ONLY)
+
+        fileIo.copyFileSync(file.fd, filePath)
+
+        fileIo.closeSync(file.fd)
+
+        this.sendVideoMessage(filePath)
+      }
+
+    } catch (error) {
+      let err = error as BusinessError;
+      console.error(`the pick call failed. error code: ${err.code}`);
     }
   }
 
