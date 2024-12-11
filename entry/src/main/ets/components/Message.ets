@@ -1,15 +1,12 @@
-import { MessageInfo, mMessageModel } from '../models/mMessage'
+import { MessageInfo, MessageTypeEnum, mMessageModel } from '../models/mMessage'
 import { mPopup } from '../models/mPopup'
 import { currentUser } from '../models/mUsers'
-import { promptAction } from '@kit.ArkUI'
 import { preferencesUtils } from '../utils/preferences/preferencesUtils'
 
 @Component
 export default struct Message {
   @Prop messageItem: mMessageModel = new mMessageModel({} as MessageInfo)
   @State customPopup: boolean = false
-  deleteUiMessage:(messageId:string)=>void=()=>{}
-
   @State popList: mPopup[] = [
     {
       icon: $r('app.media.ear'),
@@ -27,7 +24,7 @@ export default struct Message {
       icon: $r('app.media.delete'),
       title: '删除',
       popClick: () => {
-        preferencesUtils.removeMessageById(this.messageItem.connectUser.userId,this.messageItem.id)
+        preferencesUtils.removeMessageById(this.messageItem.connectUser.userId, this.messageItem.id)
 
         this.deleteUiMessage(this.messageItem.id)
       }
@@ -45,6 +42,9 @@ export default struct Message {
       title: '提醒'
     }
   ]
+
+  deleteUiMessage: (messageId: string) => void = () => {
+  }
 
   @Builder
   bubbleBuilder() {
@@ -84,13 +84,19 @@ export default struct Message {
 
       Row() {
         Column() {
-          Text(this.messageItem.messageContent)
-            .fontSize(14)
-            .backgroundColor(this.messageItem.sender.userId === currentUser.userId ? $r('app.color.second_primary') :
-            $r('app.color.white'))
-            .borderRadius(4)
-            .padding(10)
-            .margin({ left: 10, right: 10 })
+          if (this.messageItem.messageType === MessageTypeEnum.IMAGE) {
+            Image('file://' + this.messageItem.sourceFilePath)
+              .width('100%')
+              .borderRadius(4)
+          } else if (this.messageItem.messageType === MessageTypeEnum.TEXT) {
+            Text(this.messageItem.messageContent)
+              .fontSize(14)
+              .backgroundColor(this.messageItem.sender.userId === currentUser.userId ? $r('app.color.second_primary') :
+              $r('app.color.white'))
+              .borderRadius(4)
+              .padding(10)
+              .margin({ left: 10, right: 10 })
+          }
         }
       }
       .layoutWeight(6)

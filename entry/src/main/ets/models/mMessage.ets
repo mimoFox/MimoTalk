@@ -27,7 +27,7 @@ export class mMessageModel implements MessageInfo {
   sendTime: number // 发送时间
   sourceFilePath: string // 资源地址
   sourceDuration: number // 发送的长度
-  messageType: MessageTypeEnum // 发送的类型
+  messageType: MessageTypeEnum = MessageTypeEnum.TEXT // 发送的类型 默认发送文本
   messageContent: string // 发送的内容
   connectUser: UsersInfo // 消息的归属者
 
@@ -37,7 +37,7 @@ export class mMessageModel implements MessageInfo {
     this.sendTime = mModel.sendTime || Date.now()
     this.sourceFilePath = mModel.sourceFilePath
     this.sourceDuration = mModel.sourceDuration
-    this.messageType = mModel.messageType
+    this.messageType = mModel.messageType || MessageTypeEnum.TEXT
     this.messageContent = mModel.messageContent
     this.connectUser = mModel.connectUser
   }

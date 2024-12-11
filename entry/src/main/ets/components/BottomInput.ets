@@ -2,6 +2,9 @@ import { display, promptAction } from '@kit.ArkUI'
 import { mPopup } from '../models/mPopup'
 import { mVoiceStateEnum } from '../models/mVoiceStateEnum'
 import voiceRecCom from './voiceRecCom'
+import { photoAccessHelper } from '@kit.MediaLibraryKit'
+import { BusinessError } from '@kit.BasicServicesKit'
+import { fileIo } from '@kit.CoreFileKit'
 
 @Component
 export default struct BottomInput {
@@ -15,7 +18,14 @@ export default struct BottomInput {
   bottomMenuList: mPopup[] = [
     {
       icon: $r('app.media.picture'),
-      title: '图片'
+      title: '图片',
+      popClick: () => {
+        promptAction.showToast({
+          message: '选择图片'
+        })
+        this.submitPictureAndVideo()
+
+      }
     },
     {
       icon: $r('app.media.camera'),
@@ -47,6 +57,8 @@ export default struct BottomInput {
     }
   ]
   sendMessage: (sendText: string) => void = () => {
+  }
+  sendPictureVideoMessage: (filePath: string) => void = () => {
   }
 
   aboutToAppear(): void {
@@ -90,12 +102,14 @@ export default struct BottomInput {
           }
         }
         .margin({ bottom: 10 })
+        .onClick(() => {
+          item.popClick && item.popClick()
+        })
       })
     }
     .width('100%')
     .padding(20)
     .backgroundColor($r('app.color.bottom_color'))
-
   }
 
   // 发送消息
@@ -110,6 +124,49 @@ export default struct BottomInput {
         duration: 500,
         bottom: 200
       })
+    }
+  }
+
+  // 发送图片
+  submitPictureAndVideo() {
+
+    try {
+      // 配置选择相片的选项
+      let PhotoSelectOptions = new photoAccessHelper.PhotoSelectOptions();
+
+      // 选择的类型
+      PhotoSelectOptions.MIMEType = photoAccessHelper.PhotoViewMIMETypes.IMAGE_VIDEO_TYPE;
+
+      // 选择的最大数量
+      PhotoSelectOptions.maxSelectNumber = 9;
+
+      // 打开相册
+      let photoPicker = new photoAccessHelper.PhotoViewPicker();
+      photoPicker.select(PhotoSelectOptions).then((PhotoSelectResult: photoAccessHelper.PhotoSelectResult) => {
+        console.info('选择相片成功, 相片uri: ' + JSON.stringify(PhotoSelectResult));
+        if (PhotoSelectResult.photoUris.length) {
+          PhotoSelectResult.photoUris.forEach((item) => {
+            // 将图片保存到沙箱
+            // 如果路径存在则打开，不存在则创建
+            let filePath = getContext().filesDir + '/' + Date.now() + '_mimo' + '.jpg'
+            // 打开文件
+            let file = fileIo.openSync(item, fileIo.OpenMode.READ_ONLY)
+
+            fileIo.copyFileSync(file.fd, filePath)
+
+            fileIo.closeSync(file.fd)
+
+            this.sendPictureVideoMessage(filePath)
+          })
+        }
+
+
+      }).catch((err: BusinessError) => {
+        console.error(`选择相片失败: ${err.code}, ${err.message}`);
+      });
+    } catch (error) {
+      let err: BusinessError = error as BusinessError;
+      console.error(`选择相片失败: ${err.code}, ${err.message}`);
     }
   }
 
@@ -190,7 +247,14 @@ export default struct BottomInput {
             .backgroundColor($r('app.color.white'))
             .borderRadius(4)
             .onClick(() => {
-              this.showBottomMenu = false
+              animateTo({ duration: 500 }, () => {
+                this.showBottomMenu = false
+              })
+            })
+            .onFocus(() => {
+              animateTo({ duration: 500 }, () => {
+                this.showBottomMenu = false
+              })
             })
 
           // TextInput({ text: $$this.sendText })

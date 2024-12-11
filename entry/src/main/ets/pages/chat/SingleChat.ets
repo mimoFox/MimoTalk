@@ -2,7 +2,7 @@ import { currentUser, UsersInfo } from '../../models/mUsers'
 import { router } from '@kit.ArkUI'
 import BottomInput from '../../components/BottomInput'
 import Message from '../../components/Message'
-import { MessageInfo, mMessageModel } from '../../models/mMessage'
+import { MessageInfo, MessageTypeEnum, mMessageModel } from '../../models/mMessage'
 import { getMessageInfo } from '../../api'
 import { preferencesUtils } from '../../utils/preferences/preferencesUtils'
 import { emitter } from '@kit.BasicServicesKit'
@@ -77,6 +77,7 @@ struct SingleChat {
     console.log('userItem' + JSON.stringify(this.receiver))
   }
 
+  // 发送文本消息
   sendMessage(sendText: string) {
     let message = new mMessageModel({
       connectUser: this.receiver,
@@ -93,6 +94,27 @@ struct SingleChat {
     this.scroller.scrollEdge(Edge.Bottom)
 
     this.getMessage(sendText)
+  }
+
+  // 发送图片或者视频消息
+  sendPictureVideoMessage(filePath: string) {
+    let message = new mMessageModel({
+      connectUser: this.receiver,
+      messageContent: '[图片]',
+      sender: currentUser,
+      sourceFilePath: filePath,
+      messageType: MessageTypeEnum.IMAGE
+    } as MessageInfo)
+
+    this.messageList.push(message)
+
+    // 存储聊天记录
+    preferencesUtils.addMessage(this.receiver.userId, message)
+
+    // 自动定位到最后一条消息
+    this.scroller.scrollEdge(Edge.Bottom)
+
+    // this.getMessage(filePath)
   }
 
   // 获取机器人回复信息
@@ -162,6 +184,9 @@ struct SingleChat {
       BottomInput({
         sendMessage: (sendText: string) => {
           this.sendMessage(sendText)
+        },
+        sendPictureVideoMessage: (filePath: string) => {
+          this.sendPictureVideoMessage(filePath)
         }
       })
     }
