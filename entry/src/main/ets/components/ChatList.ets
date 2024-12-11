@@ -1,10 +1,12 @@
 import { mMessageModel } from '../models/mMessage';
 import { preferencesUtils } from '../utils/preferences/preferencesUtils';
 import { formatTime } from '../utils/Utils';
-import { emitter } from '@kit.BasicServicesKit';
+import { BusinessError, emitter } from '@kit.BasicServicesKit';
 import { promptAction, router } from '@kit.ArkUI';
 import HeaderCom from './HeaderCom';
 import { mPopup } from '../models/mPopup';
+import { hilog } from '@kit.PerformanceAnalysisKit';
+import { scanBarcode, scanCore } from '@kit.ScanKit';
 
 @Component
 export default struct ChatList {
@@ -33,6 +35,31 @@ export default struct ChatList {
         promptAction.showToast({
           message: '扫一扫'
         })
+        // cnaIUse() 先检测是否能用扫码功能
+        if (canIUse('SystemCapability.Multimedia.Scan.Core')) {
+          // 定义扫码参数options
+          let options: scanBarcode.ScanOptions = {
+            scanTypes: [scanCore.ScanType.ALL],
+            enableMultiMode: true,
+            enableAlbum: true
+          };
+          if (canIUse('SystemCapability.Multimedia.Scan.ScanBarcode')) {
+            try {
+              scanBarcode.startScanForResult(getContext(this), options).then((result: scanBarcode.ScanResult) => {
+                hilog.info(0x0001, '[Scan Sample]',
+                  `成功扫描，结果： ${JSON.stringify(result)}`);
+              }).catch((error: BusinessError) => {
+                hilog.error(0x0001, '[Scan Sample]',
+                  `扫描失败， Code: ${error.code}, message: ${error.message}`);
+              });
+            } catch (error) {
+              hilog.error(0x0001, '[Scan Sample]',
+                `扫描失败， Code: ${error.code}, message: ${error.message}`);
+            }
+          }
+        }
+
+
       }
     },
     {
