@@ -64,7 +64,12 @@ export default struct ChatList {
     },
     {
       title: '收付款',
-      icon: $r('app.media.pay')
+      icon: $r('app.media.pay'),
+      popClick: () => {
+        router.pushUrl({
+          url: 'pages/payments/Receipts_Payments'
+        })
+      }
     }
   ]
 

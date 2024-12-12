@@ -3,8 +3,9 @@ import { mPopup } from '../models/mPopup'
 @Component
 export default struct HeaderCom {
   item: mPopup = {} as mPopup
-  @Link showPop: boolean
+  @Link showPop?: boolean
   @Prop popList: mPopup[]
+  backItem?: mPopup = {} as mPopup
 
   @Builder
   dropDownBuilder() {
@@ -26,35 +27,43 @@ export default struct HeaderCom {
 
   build() {
     Row() {
-      Stack({ alignContent: Alignment.End }) {
-        Text(this.item.title)
-          .fontSize(20)
-          .width('100%')
-          .textAlign(TextAlign.Center)
 
-        Image(this.item.icon)
-          .width(20)
-          .height(20)
-          .margin({ right: 20 })
-          .onClick(() => {
-            this.item.popClick && this.item.popClick()
-          })
-          .bindPopup($$this.showPop, {
-            builder: this.dropDownBuilder(),
-            arrowPointPosition: ArrowPointPosition.END,
-            popupColor: $r('app.color.popup_back'),
-            backgroundBlurStyle: BlurStyle.NONE,
-            onStateChange: (event) => {
-              if (event) {
-                this.showPop = event.isVisible
-              }
+      Image(this.backItem?.icon)
+        .width(20)
+        .height(20)
+        .margin({ left: 10 })
+        .onClick(() => {
+          this.backItem?.popClick && this.backItem.popClick()
+        })
+
+      Text(this.item.title)
+        .fontSize(20)
+        .textAlign(TextAlign.Center)
+        .layoutWeight(1)
+
+      Image(this.item.icon)
+        .width(20)
+        .height(20)
+        .margin({ right: 20 })
+        .onClick(() => {
+          this.item.popClick && this.item.popClick()
+        })
+        .bindPopup($$this.showPop, {
+          builder: this.dropDownBuilder(),
+          arrowPointPosition: ArrowPointPosition.END,
+          popupColor: $r('app.color.popup_back'),
+          backgroundBlurStyle: BlurStyle.NONE,
+          onStateChange: (event) => {
+            if (event) {
+              this.showPop = event.isVisible
             }
-          })
-      }
+          }
+        })
+
+
     }
     .width('100%')
     .height(50)
     .justifyContent(FlexAlign.Center)
-    .backgroundColor($r('app.color.second_back_color'))
   }
 }

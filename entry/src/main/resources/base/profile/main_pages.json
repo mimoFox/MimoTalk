@@ -1,6 +1,7 @@
 {
   "src": [
     "pages/Index",
-    "pages/chat/SingleChat"
+    "pages/chat/SingleChat",
+    "pages/payments/Receipts_Payments"
   ]
 }
