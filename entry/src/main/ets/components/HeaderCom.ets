@@ -6,6 +6,7 @@ export default struct HeaderCom {
   @Link showPop?: boolean
   @Prop popList: mPopup[]
   backItem?: mPopup = {} as mPopup
+  textColor: ResourceStr = ''
 
   @Builder
   dropDownBuilder() {
@@ -27,7 +28,6 @@ export default struct HeaderCom {
 
   build() {
     Row() {
-
       Image(this.backItem?.icon)
         .width(20)
         .height(20)
@@ -40,6 +40,7 @@ export default struct HeaderCom {
         .fontSize(20)
         .textAlign(TextAlign.Center)
         .layoutWeight(1)
+        .fontColor(this.textColor)
 
       Image(this.item.icon)
         .width(20)
@@ -59,8 +60,6 @@ export default struct HeaderCom {
             }
           }
         })
-
-
     }
     .width('100%')
     .height(50)
