@@ -13,7 +13,13 @@ export default struct Message {
   @State popList: mPopup[] = [
     {
       icon: $r('app.media.ear'),
-      title: '听筒播放'
+      title: '听筒播放',
+      popClick: () => {
+        if (this.messageItem.messageType === MessageTypeEnum.TEXT) {
+          // 文本朗读
+          VoiceTransfer.textToVoice(this.messageItem.messageContent)
+        }
+      }
     },
     {
       icon: $r('app.media.01_collection'),
@@ -93,82 +99,6 @@ export default struct Message {
     }
     .width('70%')
     .borderRadius(10)
-  }
-
-  // 获取语音显示
-  @Builder
-  getAudioContent() {
-    Column({ space: 10 }) {
-      Row({ space: 5 }) {
-        Text(`${this.messageItem.sourceDuration}`)
-          .textAlign(TextAlign.Center)
-        ImageAnimator()
-          .images([
-            {
-              src:
-              $r("app.media.ic_public_voice3")
-            },
-            {
-              src: $r("app.media.ic_public_voice1")
-            },
-            {
-              src: $r("app.media.ic_public_voice2")
-            },
-            {
-              src: $r("app.media.ic_public_voice3")
-            }
-          ])
-          .iterations(-1)
-          .duration(500)
-          .state(this.audioState)
-          .fillMode(FillMode.None)
-          .width(20)
-          .height(20)
-          .rotate({
-            angle: currentUser.userId === this.messageItem.sender.userId ? 180 : 0
-          })
-      }
-      .width(this.getAudioWidth())
-      .backgroundColor(currentUser.userId === this.messageItem.sender.userId ?
-      $r('app.color.chat_primary') : $r('app.color.white'))
-      .justifyContent(currentUser.userId === this.messageItem.sender.userId ? FlexAlign.End : FlexAlign.Start)
-      .height(40)
-      .padding({
-        left: 10,
-        right: 10
-      })
-      .margin({
-        left: 10,
-        right: 10
-      })
-      .borderRadius(4)
-      .direction(currentUser.userId === this.messageItem.sender.userId ? Direction.Ltr : Direction.Rtl)
-      .onClick(() => {
-        AudioRenderer.start(this.messageItem.sourceFilePath, () => {
-          this.audioState = AnimationStatus.Running
-        },
-          () => {
-            this.audioState = AnimationStatus.Stopped
-          }
-        )
-      })
-
-      //添加条件渲染
-      if (this.transferResult) {
-        Text(this.transferResult)
-          .backgroundColor(currentUser.userId === this.messageItem.sender.userId ?
-          $r('app.color.second_primary') : $r('app.color.white'))
-          .fontColor($r('app.color.text_primary'))
-          .padding(10)
-          .lineHeight(24)
-          .margin({
-            left: 10,
-            right: 10
-          })
-          .borderRadius(5)
-      }
-    }
-    .alignItems(currentUser.userId === this.messageItem.sender.userId ? HorizontalAlign.End : HorizontalAlign.Start)
   }
 
   @Builder
