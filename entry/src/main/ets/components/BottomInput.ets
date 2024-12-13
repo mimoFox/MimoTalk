@@ -10,6 +10,7 @@ import { requestMicPhonePermission } from '../utils/requestPermission'
 import { abilityAccessCtrl, common } from '@kit.AbilityKit'
 import AudioCaptrer, { fileCapture } from '../utils/audioCapturer'
 import { UsersInfo } from '../models/mUsers'
+import { VoiceTransfer } from '../utils/VoiceTransfer'
 
 
 @Component
@@ -21,6 +22,7 @@ export default struct BottomInput {
   @State screenHeight: number = 0
   @Provide voiceState: mVoiceStateEnum = mVoiceStateEnum.RECORDING
   @State showBottomMenu: boolean = false
+  @Provide asrResult: string = ''
   bottomMenuList: mPopup[] = [
     {
       icon: $r('app.media.picture'),
@@ -292,31 +294,40 @@ export default struct BottomInput {
   }
 
   // 停止录音
+  // 松手判断逻辑
   stopRecord() {
     this.showVoiceRec = false
 
     AudioCaptrer.stop()
 
     this.endTime()
-    
+
     if (this.voiceState === mVoiceStateEnum.RECORDING) {
+      // 如果时间太短就不发送
       if (this.duration < 1) {
-        return promptAction.showToast({
-          message: '说话时间太短',
-          duration: 500,
-          bottom: 300
-        })
+        promptAction.showToast({ message: '说话时间太短' })
+        fileCapture.delFilePath(this.audioFilePath) // 删除路径
+        return
       }
       this.submitAudio()
       this.duration = 0
       this.audioFilePath = ''
     } else if (this.voiceState === mVoiceStateEnum.CANCEL) {
+      // 如果松手时，是取消状态 不管录的语音怎么样 直接删除
+      fileCapture.delFilePath(this.audioFilePath) // 删除路径
+
       this.duration = 0
       this.audioFilePath = ''
     } else if (this.voiceState === mVoiceStateEnum.TRANSFER) {
+      // 如果是转化文本类
+      if (this.asrResult) {
+        this.sendMessage(this.asrResult)
+      }
       this.duration = 0
+      this.asrResult = ''
       this.audioFilePath = ''
     }
+    this.voiceState = mVoiceStateEnum.RECORDING
   }
 
   build() {
@@ -368,6 +379,9 @@ export default struct BottomInput {
                   } else {
                     if (event.fingerList[0].globalX > this.screenWidth / 2) {
                       this.voiceState = mVoiceStateEnum.TRANSFER
+                      VoiceTransfer.voiceToText(this.audioFilePath, (res) => {
+                        this.asrResult = res.result
+                      })
                     } else {
                       this.voiceState = mVoiceStateEnum.CANCEL
                     }

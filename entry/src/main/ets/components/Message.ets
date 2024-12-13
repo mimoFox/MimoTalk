@@ -3,11 +3,13 @@ import { mPopup } from '../models/mPopup'
 import { currentUser } from '../models/mUsers'
 import { AudioRenderer, fileCapture } from '../utils/audioCapturer'
 import { preferencesUtils } from '../utils/preferences/preferencesUtils'
+import { VoiceTransfer } from '../utils/VoiceTransfer'
 
 @Component
 export default struct Message {
   @Prop messageItem: mMessageModel = new mMessageModel({} as MessageInfo)
   @State customPopup: boolean = false
+  @State transferResult: string = ''
   @State popList: mPopup[] = [
     {
       icon: $r('app.media.ear'),
@@ -19,7 +21,15 @@ export default struct Message {
     },
     {
       icon: $r('app.media.icon_tab_convert_to_text'),
-      title: '转文字'
+      title: '转文字',
+      popClick: () => {
+        if (this.messageItem.messageType === MessageTypeEnum.AUDIO) {
+          VoiceTransfer.voiceToText(this.messageItem.sourceFilePath, (res) => {
+            this.transferResult = res.result
+          })
+        }
+        this.customPopup = false
+      }
     },
     {
       icon: $r('app.media.delete'),
@@ -50,6 +60,7 @@ export default struct Message {
     }
   ]
   videoController: VideoController = new VideoController()
+  @State audioState: AnimationStatus = AnimationStatus.Initial
   deleteUiMessage: (messageId: string) => void = () => {
   }
   previewImg: (filePath: string, messageType?: MessageTypeEnum) => void = () => {
@@ -82,6 +93,82 @@ export default struct Message {
     }
     .width('70%')
     .borderRadius(10)
+  }
+
+  // 获取语音显示
+  @Builder
+  getAudioContent() {
+    Column({ space: 10 }) {
+      Row({ space: 5 }) {
+        Text(`${this.messageItem.sourceDuration}`)
+          .textAlign(TextAlign.Center)
+        ImageAnimator()
+          .images([
+            {
+              src:
+              $r("app.media.ic_public_voice3")
+            },
+            {
+              src: $r("app.media.ic_public_voice1")
+            },
+            {
+              src: $r("app.media.ic_public_voice2")
+            },
+            {
+              src: $r("app.media.ic_public_voice3")
+            }
+          ])
+          .iterations(-1)
+          .duration(500)
+          .state(this.audioState)
+          .fillMode(FillMode.None)
+          .width(20)
+          .height(20)
+          .rotate({
+            angle: currentUser.userId === this.messageItem.sender.userId ? 180 : 0
+          })
+      }
+      .width(this.getAudioWidth())
+      .backgroundColor(currentUser.userId === this.messageItem.sender.userId ?
+      $r('app.color.chat_primary') : $r('app.color.white'))
+      .justifyContent(currentUser.userId === this.messageItem.sender.userId ? FlexAlign.End : FlexAlign.Start)
+      .height(40)
+      .padding({
+        left: 10,
+        right: 10
+      })
+      .margin({
+        left: 10,
+        right: 10
+      })
+      .borderRadius(4)
+      .direction(currentUser.userId === this.messageItem.sender.userId ? Direction.Ltr : Direction.Rtl)
+      .onClick(() => {
+        AudioRenderer.start(this.messageItem.sourceFilePath, () => {
+          this.audioState = AnimationStatus.Running
+        },
+          () => {
+            this.audioState = AnimationStatus.Stopped
+          }
+        )
+      })
+
+      //添加条件渲染
+      if (this.transferResult) {
+        Text(this.transferResult)
+          .backgroundColor(currentUser.userId === this.messageItem.sender.userId ?
+          $r('app.color.second_primary') : $r('app.color.white'))
+          .fontColor($r('app.color.text_primary'))
+          .padding(10)
+          .lineHeight(24)
+          .margin({
+            left: 10,
+            right: 10
+          })
+          .borderRadius(5)
+      }
+    }
+    .alignItems(currentUser.userId === this.messageItem.sender.userId ? HorizontalAlign.End : HorizontalAlign.Start)
   }
 
   @Builder
@@ -141,36 +228,77 @@ export default struct Message {
 
   @Builder
   audioBuilder() {
-    Row({ space: 5 }) {
-      Text(`${this.messageItem.sourceDuration}'`)
+    Column({ space: 10 }) {
+      Row({ space: 5 }) {
+        Text(`${this.messageItem.sourceDuration}`)
+          .textAlign(TextAlign.Center)
+        ImageAnimator()
+          .images([
+            {
+              src:
+              $r("app.media.ic_public_voice3")
+            },
+            {
+              src: $r("app.media.ic_public_voice1")
+            },
+            {
+              src: $r("app.media.ic_public_voice2")
+            },
+            {
+              src: $r("app.media.ic_public_voice3")
+            }
+          ])
+          .iterations(-1)
+          .duration(500)
+          .state(this.audioState)
+          .fillMode(FillMode.None)
+          .width(20)
+          .height(20)
+          .rotate({
+            angle: currentUser.userId === this.messageItem.sender.userId ? 180 : 0
+          })
+      }
+      .width(this.getAudioWidth())
+      .backgroundColor(currentUser.userId === this.messageItem.sender.userId ?
+      $r('app.color.chat_primary') : $r('app.color.white'))
+      .justifyContent(currentUser.userId === this.messageItem.sender.userId ? FlexAlign.End : FlexAlign.Start)
+      .height(40)
+      .padding({
+        left: 10,
+        right: 10
+      })
+      .margin({
+        left: 10,
+        right: 10
+      })
+      .borderRadius(4)
+      .direction(currentUser.userId === this.messageItem.sender.userId ? Direction.Ltr : Direction.Rtl)
+      .onClick(() => {
+        AudioRenderer.start(this.messageItem.sourceFilePath, () => {
+          this.audioState = AnimationStatus.Running
+        },
+          () => {
+            this.audioState = AnimationStatus.Stopped
+          }
+        )
+      })
 
-      Image(
-        $r("app.media.audio"))
-        .width(20)
-        .height(20)
-        .rotate({
-          angle: currentUser.userId === this.messageItem.sender.userId ? 180 : 0
-        })
+      //添加条件渲染
+      if (this.transferResult) {
+        Text(this.transferResult)
+          .backgroundColor(currentUser.userId === this.messageItem.sender.userId ?
+          $r('app.color.second_primary') : $r('app.color.white'))
+          .fontColor($r('app.color.text_primary'))
+          .padding(10)
+          .lineHeight(24)
+          .margin({
+            left: 10,
+            right: 10
+          })
+          .borderRadius(5)
+      }
     }
-    .width(this.getAudioWidth())
-    .backgroundColor(currentUser.userId === this.messageItem.sender.userId ? $r('app.color.chat_primary') :
-    $r('app.color.white'))
-    .justifyContent(currentUser.userId === this.messageItem.sender.userId ? FlexAlign.End : FlexAlign.Start)
-    .height(40)
-    .padding({
-      left: 10,
-      right: 10
-    })
-    .margin({
-      left: 10,
-      right: 10
-    })
-    .borderRadius(4)
-    .direction(currentUser.userId === this.messageItem.sender.userId ? Direction.Ltr : Direction.Rtl)
-    .onClick(() => {
-      // 点击语音消息进行播放
-      AudioRenderer.start(this.messageItem.sourceFilePath)
-    })
+    .alignItems(currentUser.userId === this.messageItem.sender.userId ? HorizontalAlign.End : HorizontalAlign.Start)
   }
 
   // 获取语音宽度

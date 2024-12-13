@@ -3,6 +3,8 @@ import { mVoiceStateEnum } from '../models/mVoiceStateEnum'
 @Component
 export default struct voiceRecCom {
   @Consume voiceState: mVoiceStateEnum
+  @Consume asrResult: string
+
 
   // 移动时显示的界面
   @Builder
@@ -27,13 +29,18 @@ export default struct voiceRecCom {
       .backgroundColor($r('app.color.primary'))
     }
     if (this.voiceState === mVoiceStateEnum.TRANSFER) {
-      Row() {
-
+      Row(){
+        Text(this.asrResult)
+          .fontSize(20)
+          .fontColor(
+            $r("app.color.text_primary"))
       }
-      .width(300)
-      .height(180)
+      .alignItems(VerticalAlign.Top)
+      .padding(10)
+      .height(120)
+      .width(280)
       .borderRadius(20)
-      .backgroundColor($r('app.color.primary'))
+      .backgroundColor($r('app.color.chat_primary'))
     }
   }
 
@@ -51,11 +58,11 @@ export default struct voiceRecCom {
         // 取消 和 转文字区域
         Column() {
           Row() {
-
             Column() {
               if (this.voiceState === mVoiceStateEnum.CANCEL) {
                 Text('松开 取消').fontSize(12).fontColor($r('app.color.text_second'))
                   .margin({ bottom: 10 })
+
               } else {
                 Row() {
 

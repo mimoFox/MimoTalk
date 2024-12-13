@@ -2,6 +2,7 @@ import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.Ab
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { KeyboardAvoidMode, window } from '@kit.ArkUI';
 import { preferencesUtils } from '../utils/preferences/preferencesUtils';
+import { AVPlayerClass } from '../utils/AVPlayerClass';
 
 export default class EntryAbility extends UIAbility {
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
@@ -25,6 +26,9 @@ export default class EntryAbility extends UIAbility {
 
       // 初始化首选项持久化存储
       preferencesUtils.init(this.context)
+
+      // 初始化播放声音
+      AVPlayerClass.init(this.context)
 
       //解决键盘避让
       windowStage.getMainWindowSync().getUIContext().setKeyboardAvoidMode(KeyboardAvoidMode.RESIZE)

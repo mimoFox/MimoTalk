@@ -52,7 +52,9 @@ export class fileCapture {
 export default class AudioCaptrer {
   static audioCapturer: audio.AudioCapturer
   static audioStreamInfo: audio.AudioStreamInfo = {
-    samplingRate: audio.AudioSamplingRate.SAMPLE_RATE_48000,
+    // 需要注意： 语音转文字只能支持真机，只能支持采样率为16000赫兹的pcm音频识别
+    // AudioCaputur/AudioRenderer 都要换成16000赫兹
+    samplingRate: audio.AudioSamplingRate.SAMPLE_RATE_16000,
     channels: audio.AudioChannel.CHANNEL_2,
     sampleFormat: audio.AudioSampleFormat.SAMPLE_FORMAT_S16LE,
     encodingType: audio.AudioEncodingType.ENCODING_TYPE_RAW
@@ -130,7 +132,9 @@ export class AudioRenderer {
   static renderModel: audio.AudioRenderer
   // 采样配置
   static audioStreamInfo: audio.AudioStreamInfo = {
-    samplingRate: audio.AudioSamplingRate.SAMPLE_RATE_44100,
+    // 需要注意： 语音转文字只能支持真机，只能支持采样率为16000赫兹的pcm音频识别
+    // AudioCaputur/AudioRenderer 都要换成16000赫兹
+    samplingRate: audio.AudioSamplingRate.SAMPLE_RATE_16000,
     channels: audio.AudioChannel.CHANNEL_1,
     sampleFormat: audio.AudioSampleFormat.SAMPLE_FORMAT_S16LE,
     encodingType: audio.AudioEncodingType.ENCODING_TYPE_RAW
@@ -188,13 +192,19 @@ export class AudioRenderer {
   }
 
   // 开始语音播放
-  static async start(filePath: string, callback?: () => void) {
+  static async start(filePath: string, startCallback?: () => void, endCallback?: () => void) {
     if (AudioRenderer.renderModel && filePath) {
       // 可能有正在播放的语音，手动结束一次（也可以加个标记，但是没必要）
       await AudioRenderer.stop()
+      // 停止上一次动画
+      AudioRenderer.renderCallback && AudioRenderer.renderCallback()
+      // 开始新的动画
+      startCallback && startCallback()
+
+      // 开始新的播放
       AudioRenderer.renderFile = fileIo.openSync(filePath, fileIo.OpenMode.READ_ONLY) // 读这个文件的buffer  一段段的读取 1280
       AudioRenderer.maxSize = fileIo.statSync(AudioRenderer.renderFile.fd).size // 语音详细信息
-      AudioRenderer.renderCallback = callback
+      AudioRenderer.renderCallback = endCallback
       await AudioRenderer.renderModel.start()
     }
   }

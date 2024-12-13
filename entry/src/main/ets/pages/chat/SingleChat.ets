@@ -7,6 +7,7 @@ import { getMessageInfo } from '../../api'
 import { preferencesUtils } from '../../utils/preferences/preferencesUtils'
 import { emitter } from '@kit.BasicServicesKit'
 import { AudioRenderer } from '../../utils/audioCapturer'
+import { AVPlayerClass } from '../../utils/AVPlayerClass'
 
 @Entry
 @Component
@@ -76,6 +77,7 @@ struct SingleChat {
     customStyle: true
   })
 
+
   @Builder
   previewBuilder() {
     Column() {
@@ -138,6 +140,9 @@ struct SingleChat {
 
     this.messageList.push(message)
 
+    // 播放提示音
+    AVPlayerClass.play('send')
+
     // 存储聊天记录
     preferencesUtils.addMessage(this.receiver.userId, message)
 
@@ -158,7 +163,8 @@ struct SingleChat {
     } as MessageInfo)
 
     this.messageList.push(message)
-
+    // 播放提示音
+    AVPlayerClass.play('send')
     // 存储聊天记录
     preferencesUtils.addMessage(this.receiver.userId, message)
 
@@ -179,7 +185,8 @@ struct SingleChat {
     } as MessageInfo)
 
     this.messageList.push(message)
-
+    // 播放提示音
+    AVPlayerClass.play('send')
     // 存储聊天记录
     preferencesUtils.addMessage(this.receiver.userId, message)
 
@@ -200,7 +207,8 @@ struct SingleChat {
     } as MessageInfo)
 
     this.messageList.push(message)
-
+    // 播放提示音
+    AVPlayerClass.play('send')
     // 存储聊天记录
     preferencesUtils.addMessage(this.receiver.userId, message)
 
@@ -220,7 +228,8 @@ struct SingleChat {
     } as MessageInfo)
 
     this.messageList.push(message)
-
+    // 播放提示音
+    AVPlayerClass.play('information')
     // 存储聊天记录
     preferencesUtils.addMessage(this.receiver.userId, message)
 
@@ -228,6 +237,8 @@ struct SingleChat {
     // 自动定位到最后一条消息
     this.scroller.scrollEdge(Edge.Bottom)
   }
+
+
 
   // 删除单条聊天记录
   deleteUiMessage(messageId: string) {
