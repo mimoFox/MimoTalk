@@ -1,6 +1,8 @@
 import ChatList from '../components/ChatList'
 import Connect from '../components/Connect'
 import { mTabs } from '../models/mTabs'
+import Find from './find/Find'
+import My from './my/My'
 
 @Entry
 @Component
@@ -57,9 +59,9 @@ struct Index {
             } else if (item.name === 'connect') {
               Connect()
             } else if (item.name === 'discover') {
-              Text('发现页面')
+              Find()
             } else if (item.name === 'my') {
-              Text('我的页面')
+              My()
             }
 
           }.tabBar(this.tabsBuilder(item))

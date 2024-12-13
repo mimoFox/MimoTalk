@@ -34,8 +34,8 @@ export default struct Connect {
           ListItem() {
             Row({ space: 10 }) {
               Image(user.avatar)
-                .width(30).height(30)
-                .borderRadius(15)
+                .width(40).height(40)
+                .borderRadius(6)
                 .margin({ left: 10 })
               Column() {
                 Text(user.userName).fontSize(14)
@@ -47,7 +47,7 @@ export default struct Connect {
               .alignItems(HorizontalAlign.Start)
             }
             .width('100%')
-            .height(50)
+            .height(60)
           }
           .stateStyles({
             pressed: {
