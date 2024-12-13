@@ -1,6 +1,7 @@
 import { MessageInfo, MessageTypeEnum, mMessageModel } from '../models/mMessage'
 import { mPopup } from '../models/mPopup'
 import { currentUser } from '../models/mUsers'
+import { AudioRenderer, fileCapture } from '../utils/audioCapturer'
 import { preferencesUtils } from '../utils/preferences/preferencesUtils'
 
 @Component
@@ -23,9 +24,15 @@ export default struct Message {
     {
       icon: $r('app.media.delete'),
       title: '删除',
-      popClick: () => {
-        preferencesUtils.removeMessageById(this.messageItem.connectUser.userId, this.messageItem.id)
+      popClick: async () => {
+        // 如果语音文件存在则删除
+        if (this.messageItem.sourceFilePath) {
+          fileCapture.delFilePath(this.messageItem.sourceFilePath)
+        }
 
+        // 删除消息记录
+        await preferencesUtils.removeMessageById(this.messageItem.connectUser.userId, this.messageItem.id)
+        // 删除UI界面显示
         this.deleteUiMessage(this.messageItem.id)
       }
     },
@@ -77,62 +84,122 @@ export default struct Message {
     .borderRadius(10)
   }
 
+  @Builder
+  imgBuilder() {
+    Column() {
+      Image('file://' + this.messageItem.sourceFilePath)
+        .width('100%')
+        .borderRadius(4)
+        .onClick(() => {
+          this.previewImg(this.messageItem.sourceFilePath, this.messageItem.messageType)
+        })
+    }
+    .width('40%')
+    .margin({ left: 10, right: 10 })
+  }
+
+  @Builder
+  videoBuilder() {
+    Column() {
+      Stack() {
+        Video({
+          src: 'file://' + this.messageItem.sourceFilePath,
+
+          controller: this.videoController
+        })
+          .controls(false)
+          .width('100%')
+          .height(150)
+          .borderRadius(4)
+          .id(this.messageItem.id)
+          .onPrepared(async () => {
+            // 缓存加载预览画面
+            await this.videoController.setCurrentTime(0.1)
+          })
+
+        Image($r('app.media.play_fill')).width(30).height(30)
+          .onClick(() => {
+            this.previewImg(this.messageItem.sourceFilePath, this.messageItem.messageType)
+            this.videoController.start()
+          })
+      }
+    }
+    .width('40%')
+    .margin({ left: 10, right: 10 })
+  }
+
+  @Builder
+  textBuilder() {
+    Text(this.messageItem.messageContent)
+      .fontSize(14)
+      .backgroundColor(this.messageItem.sender.userId === currentUser.userId ? $r('app.color.second_primary') :
+      $r('app.color.white'))
+      .borderRadius(4)
+      .padding(10)
+      .margin({ left: 10, right: 10 })
+  }
+
+  @Builder
+  audioBuilder() {
+    Row({ space: 5 }) {
+      Text(`${this.messageItem.sourceDuration}'`)
+
+      Image(
+        $r("app.media.audio"))
+        .width(20)
+        .height(20)
+        .rotate({
+          angle: currentUser.userId === this.messageItem.sender.userId ? 180 : 0
+        })
+    }
+    .width(this.getAudioWidth())
+    .backgroundColor(currentUser.userId === this.messageItem.sender.userId ? $r('app.color.chat_primary') :
+    $r('app.color.white'))
+    .justifyContent(currentUser.userId === this.messageItem.sender.userId ? FlexAlign.End : FlexAlign.Start)
+    .height(40)
+    .padding({
+      left: 10,
+      right: 10
+    })
+    .margin({
+      left: 10,
+      right: 10
+    })
+    .borderRadius(4)
+    .direction(currentUser.userId === this.messageItem.sender.userId ? Direction.Ltr : Direction.Rtl)
+    .onClick(() => {
+      // 点击语音消息进行播放
+      AudioRenderer.start(this.messageItem.sourceFilePath)
+    })
+  }
+
+  // 获取语音宽度
+  getAudioWidth() {
+    let minWidth: number = 20
+    let maxWidth: number = 90
+    let calWidth: number = minWidth + (100 * this.messageItem.sourceDuration / 60)
+    if (calWidth > maxWidth) {
+      return maxWidth + "%"
+    }
+    return calWidth + "%"
+  }
+
   build() {
     Row() {
       Image(this.messageItem.sender.avatar)
         .width(40)
         .height(40)
         .borderRadius(6)
-
-
       Row() {
         Column() {
           if (this.messageItem.messageType === MessageTypeEnum.IMAGE) {
-            Column() {
-              Image('file://' + this.messageItem.sourceFilePath)
-                .width('100%')
-                .borderRadius(4)
-                .onClick(() => {
-                  this.previewImg(this.messageItem.sourceFilePath, this.messageItem.messageType)
-                })
-            }
-            .width('40%')
-            .margin({ left: 10, right: 10 })
+            this.imgBuilder()
           } else if (this.messageItem.messageType === MessageTypeEnum.VIDEO) {
-            Column() {
-              Stack() {
-                Video({
-                  src: 'file://' + this.messageItem.sourceFilePath,
-
-                  controller: this.videoController
-                })
-                  .controls(false)
-                  .width('100%')
-                  .height(150)
-                  .borderRadius(4)
-                  .id(this.messageItem.id)
-                  .onPrepared(async () => {
-                    // 缓存加载预览画面
-                    await this.videoController.setCurrentTime(0.1)
-                  })
-
-                Image($r('app.media.play_fill')).width(30).height(30)
-                  .onClick(() => {
-                    this.previewImg(this.messageItem.sourceFilePath, this.messageItem.messageType)
-                    this.videoController.start()
-                  })
-              }
-            }
-            .width('40%')
-            .margin({ left: 10, right: 10 })
+            this.videoBuilder()
+          } else if (this.messageItem.messageType === MessageTypeEnum.AUDIO) {
+            this.audioBuilder()
           } else if (this.messageItem.messageType === MessageTypeEnum.TEXT) {
-            Text(this.messageItem.messageContent)
-              .fontSize(14)
-              .backgroundColor(this.messageItem.sender.userId === currentUser.userId ? $r('app.color.second_primary') :
-              $r('app.color.white'))
-              .borderRadius(4)
-              .padding(10)
-              .margin({ left: 10, right: 10 })
+            this.textBuilder()
           }
         }
       }

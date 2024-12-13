@@ -11,6 +11,10 @@
     {
       "name": "EntryAbility_label",
       "value": "mimo聊天室"
+    },
+    {
+      "name": "micPhone_reason",
+      "value": "发送语音"
     }
   ]
 }

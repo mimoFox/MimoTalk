@@ -6,6 +6,7 @@ import { MessageInfo, MessageTypeEnum, mMessageModel } from '../../models/mMessa
 import { getMessageInfo } from '../../api'
 import { preferencesUtils } from '../../utils/preferences/preferencesUtils'
 import { emitter } from '@kit.BasicServicesKit'
+import { AudioRenderer } from '../../utils/audioCapturer'
 
 @Entry
 @Component
@@ -113,6 +114,13 @@ struct SingleChat {
     this.messageList = preferencesUtils.getMessageById(this.receiver.userId)
 
     console.log('userItem' + JSON.stringify(this.receiver))
+
+    // 初始化播放语音
+    AudioRenderer.init()
+  }
+
+  aboutToDisappear(): void {
+    AudioRenderer.release()
   }
 
   onPageShow(): void {
@@ -168,6 +176,27 @@ struct SingleChat {
       sender: currentUser,
       sourceFilePath: filePath,
       messageType: MessageTypeEnum.VIDEO
+    } as MessageInfo)
+
+    this.messageList.push(message)
+
+    // 存储聊天记录
+    preferencesUtils.addMessage(this.receiver.userId, message)
+
+    // 自动定位到最后一条消息
+    this.scroller.scrollEdge(Edge.Bottom)
+
+  }
+
+  // 发送语音消息
+  sendAudioMessage(filePath: string, duration: number) {
+    let message = new mMessageModel({
+      connectUser: this.receiver,
+      messageContent: '[语音]',
+      sender: currentUser,
+      sourceFilePath: filePath,
+      sourceDuration: duration,
+      messageType: MessageTypeEnum.AUDIO
     } as MessageInfo)
 
     this.messageList.push(message)
@@ -256,7 +285,11 @@ struct SingleChat {
         },
         sendVideoMessage: (filePath: string) => {
           this.sendVideoMessage(filePath)
-        }
+        },
+        sendAudioMessage: (filePath: string, duration: number) => {
+          this.sendAudioMessage(filePath, duration)
+        },
+        receiver: this.receiver
       })
     }
     .height('100%')

@@ -7,6 +7,7 @@ import HeaderCom from './HeaderCom';
 import { mPopup } from '../models/mPopup';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { scanBarcode, scanCore } from '@kit.ScanKit';
+import { fileCapture } from '../utils/audioCapturer';
 
 @Component
 export default struct ChatList {
@@ -100,6 +101,8 @@ export default struct ChatList {
       const index = this.lastMessageList.findIndex((item: mMessageModel) => item.connectUser.userId === userId)
       animateTo({ duration: 1000 }, () => {
         this.lastMessageList.splice(index, 1)
+        // 删除语音文件
+        fileCapture.delUserPath(userId)
       })
 
     })

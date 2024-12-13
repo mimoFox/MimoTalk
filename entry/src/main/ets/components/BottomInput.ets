@@ -6,6 +6,10 @@ import { photoAccessHelper } from '@kit.MediaLibraryKit'
 import { BusinessError } from '@kit.BasicServicesKit'
 import { fileIo } from '@kit.CoreFileKit'
 import { camera, cameraPicker as picker } from '@kit.CameraKit'
+import { requestMicPhonePermission } from '../utils/requestPermission'
+import { abilityAccessCtrl, common } from '@kit.AbilityKit'
+import AudioCaptrer, { fileCapture } from '../utils/audioCapturer'
+import { UsersInfo } from '../models/mUsers'
 
 
 @Component
@@ -65,15 +69,21 @@ export default struct BottomInput {
       title: '音乐'
     }
   ]
+  @State audioFilePath: string = ''
+  // 计算计时器
+  @State timer: number = -1 // 定时器标记
+  @State duration: number = 0
+  @Prop receiver: UsersInfo
   sendMessage: (sendText: string) => void = () => {
   }
   sendPictureMessage: (filePath: string) => void = () => {
   }
-
-  sendVideoMessage:(filePath: string) => void = () => {
+  sendVideoMessage: (filePath: string) => void = () => {
+  }
+  sendAudioMessage: (filePath: string, duration: number) => void = () => {
   }
 
-  aboutToAppear(): void {
+  async aboutToAppear(): Promise<void> {
     //1.获取整个屏幕的宽度与高度
     //2.获取当前手指触摸的坐标x-y
     //3.手势拖动的时候，判断当前手指触摸的坐标x-y是否大于屏幕高度- 录音区域的高度
@@ -81,6 +91,14 @@ export default struct BottomInput {
     //5.如果小于 屏暮高度-录音区域的高度 说明手势不在拖动录音区域
     this.screenWidth = px2vp(display.getDefaultDisplaySync().width)
     this.screenHeight = px2vp(display.getDefaultDisplaySync().height)
+
+    // 初始化录音
+    await AudioCaptrer.init()
+  }
+
+  aboutToDisappear(): void {
+    // 释放录音器
+    AudioCaptrer.release()
   }
 
   // 显示弹层
@@ -224,6 +242,83 @@ export default struct BottomInput {
     }
   }
 
+  submitAudio() {
+    this.sendAudioMessage(this.audioFilePath, this.duration)
+  }
+
+  // 开始计时
+  startTime() {
+    this.timer = setInterval(() => {
+      this.duration++
+      promptAction.showToast({
+        message: `当前语音:${this.duration}秒`
+      })
+    }, 1000)
+  }
+
+  // 结束计时
+  endTime() {
+    clearInterval(this.timer)
+  }
+
+  // 检测麦克风权限是否开启
+  checkMicPermission() {
+    let atManager: abilityAccessCtrl.AtManager = abilityAccessCtrl.createAtManager();
+    let context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext;
+
+    requestMicPhonePermission(context, (res) => {
+      if (!res) {
+        this.showVoice = false
+        // 再次申请权限
+        atManager.requestPermissionOnSetting(context, ['ohos.permission.MICROPHONE'])
+          .then((data: Array<abilityAccessCtrl.GrantStatus>) => {
+            console.info('data:' + JSON.stringify(data));
+          })
+          .catch((err: BusinessError) => {
+            console.error('data:' + JSON.stringify(err));
+          });
+      } else {
+        // 显示蒙层
+        this.showVoiceRec = true
+
+        this.startTime()
+
+        // 开始录音
+        this.audioFilePath = fileCapture.createAudioFile(this.receiver.userId)
+
+        AudioCaptrer.start(this.audioFilePath)
+      }
+    })
+  }
+
+  // 停止录音
+  stopRecord() {
+    this.showVoiceRec = false
+
+    AudioCaptrer.stop()
+
+    this.endTime()
+    
+    if (this.voiceState === mVoiceStateEnum.RECORDING) {
+      if (this.duration < 1) {
+        return promptAction.showToast({
+          message: '说话时间太短',
+          duration: 500,
+          bottom: 300
+        })
+      }
+      this.submitAudio()
+      this.duration = 0
+      this.audioFilePath = ''
+    } else if (this.voiceState === mVoiceStateEnum.CANCEL) {
+      this.duration = 0
+      this.audioFilePath = ''
+    } else if (this.voiceState === mVoiceStateEnum.TRANSFER) {
+      this.duration = 0
+      this.audioFilePath = ''
+    }
+  }
+
   build() {
     Column() {
 
@@ -257,29 +352,24 @@ export default struct BottomInput {
               GestureMode.Parallel,
               LongPressGesture()
                 .onAction(() => {
-                  this.showVoiceRec = true
+                  // 长按手势开始
+                  this.checkMicPermission()
                 })
                 .onActionEnd(() => {
-                  this.showVoiceRec = false
+
+                  // 停止录音
+                  this.stopRecord()
                 }),
               PanGesture()
                 .onActionUpdate((event) => {
+                  // 长按后移动更新
                   if (event.fingerList[0].globalY > this.screenHeight - 170) {
                     this.voiceState = mVoiceStateEnum.RECORDING
-                    promptAction.showToast({
-                      message: '录音中...'
-                    })
                   } else {
                     if (event.fingerList[0].globalX > this.screenWidth / 2) {
                       this.voiceState = mVoiceStateEnum.TRANSFER
-                      promptAction.showToast({
-                        message: '右边'
-                      })
                     } else {
                       this.voiceState = mVoiceStateEnum.CANCEL
-                      promptAction.showToast({
-                        message: '左边'
-                      })
                     }
                   }
 
