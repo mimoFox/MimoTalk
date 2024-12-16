@@ -315,7 +315,6 @@ export default struct BottomInput {
     } else if (this.voiceState === mVoiceStateEnum.CANCEL) {
       // 如果松手时，是取消状态 不管录的语音怎么样 直接删除
       fileCapture.delFilePath(this.audioFilePath) // 删除路径
-
       this.duration = 0
       this.audioFilePath = ''
     } else if (this.voiceState === mVoiceStateEnum.TRANSFER) {

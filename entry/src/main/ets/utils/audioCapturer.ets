@@ -91,36 +91,39 @@ export default class AudioCaptrer {
 
       // 循环保存录音文件
       while (AudioCaptrer.recording) {
-        let readDataCallback = (buffer: ArrayBuffer) => {
-          if (bufferSize) {
-            let options: Options = {
-              offset: bufferSize,
-              length: buffer.byteLength
-            }
-            fileIo.writeSync(file.fd, buffer, options)
-            bufferSize += buffer.byteLength
-          }
+        let size = await AudioCaptrer.audioCapturer.getBufferSize();
+        let buffer = await AudioCaptrer.audioCapturer.read(size, true);
+        if (buffer) {
+          let options: Options = {
+            offset: bufferSize,
+            length: buffer.byteLength
+          };
+          fileIo.writeSync(file.fd, buffer, options) // 写入文件
+          bufferSize += buffer.byteLength
         }
-        AudioCaptrer.audioCapturer.on('readData', readDataCallback);
       }
-
-
     } catch (err) {
+      console.log('error' + JSON.stringify(err))
     }
 
   }
 
   // 停止录音
-  static stop() {
+  static async stop() {
     if (AudioCaptrer.audioCapturer) {
-      AudioCaptrer.audioCapturer.stop()
-      AudioCaptrer.recording = false
+      // 只有采集器状态为STATE_RUNNING或STATE_PAUSED的时候才可以停止
+      if (AudioCaptrer.audioCapturer.state === audio.AudioState.STATE_RUNNING ||
+        AudioCaptrer.audioCapturer.state === audio.AudioState.STATE_PAUSED
+      ) {
+        AudioCaptrer.recording = false
+        await AudioCaptrer.audioCapturer.stop(); // 停止采集
+      }
     }
   }
 
-  static release() {
+  static async release() {
     if (AudioCaptrer.audioCapturer) {
-      AudioCaptrer.audioCapturer.release()
+      await AudioCaptrer.audioCapturer.release()
       AudioCaptrer.recording = false
     }
   }
@@ -129,7 +132,7 @@ export default class AudioCaptrer {
 export class AudioRenderer {
   static renderIng: boolean = false // 是否正在播放
   // 实例
-  static renderModel: audio.AudioRenderer
+  static renderModel: audio.AudioRenderer | null
   // 采样配置
   static audioStreamInfo: audio.AudioStreamInfo = {
     // 需要注意： 语音转文字只能支持真机，只能支持采样率为16000赫兹的pcm音频识别
@@ -154,7 +157,7 @@ export class AudioRenderer {
   // 文件的size
   static maxSize: number = 0
   // 读取的文件
-  static renderFile: fileIo.File
+  static renderFile: fileIo.File | null
   // 播放的回调函数
   static renderCallback: (() => void) | undefined
 
@@ -167,27 +170,22 @@ export class AudioRenderer {
       // 监听事件
       AudioRenderer.renderModel.on('writeData', (buffer: ArrayBuffer) => {
         if (AudioRenderer.renderFile) {
-          fileIo.readSync(AudioRenderer.renderFile.fd, buffer, {
-            offset: AudioRenderer.renderSize,
-            length: buffer.byteLength
-          })
-          AudioRenderer.renderSize += buffer.byteLength
-          // 自动结束
-          if (AudioRenderer.renderSize >= AudioRenderer.maxSize) {
-            fileIo.closeSync(AudioRenderer.renderFile.fd)
-            AudioRenderer.stop()
+          try {
+            fileIo.readSync(AudioRenderer.renderFile.fd, buffer, {
+              offset: AudioRenderer.renderSize,
+              length: buffer.byteLength
+            })
+            AudioRenderer.renderSize += buffer.byteLength
+            // 自动结束
+            if (AudioRenderer.renderSize >= AudioRenderer.maxSize) {
+              fileIo.closeSync(AudioRenderer.renderFile!.fd)
+              AudioRenderer.stop()
+            }
+          } catch (err) {
+            console.error('Error reading file: ' + err)
           }
         }
       })
-    }
-  }
-
-  // 音频的释放和暂停
-  static async stop() {
-    if (AudioRenderer.renderModel && AudioRenderer.renderModel.state === audio.AudioState.STATE_RUNNING) {
-      await AudioRenderer.renderModel.stop()
-      AudioRenderer.renderSize = 0
-      AudioRenderer.maxSize = 0
     }
   }
 
@@ -209,11 +207,22 @@ export class AudioRenderer {
     }
   }
 
+  // 音频的释放和暂停
+  static async stop() {
+    if (AudioRenderer.renderModel && AudioRenderer.renderModel.state === audio.AudioState.STATE_RUNNING) {
+      await AudioRenderer.renderModel.stop()
+      AudioRenderer.renderSize = 0
+      AudioRenderer.maxSize = 0
+    }
+  }
+
   // 释放
   static async release() {
     if (AudioRenderer.renderModel) {
       await AudioRenderer.stop() //先停，可能还在播放
       await AudioRenderer.renderModel.release() // 释放
+      AudioRenderer.renderModel = null
+      AudioRenderer.renderFile = null
     }
   }
 }
