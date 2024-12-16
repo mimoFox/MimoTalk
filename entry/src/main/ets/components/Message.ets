@@ -160,7 +160,7 @@ export default struct Message {
   audioBuilder() {
     Column({ space: 10 }) {
       Row({ space: 5 }) {
-        Text(`${this.messageItem.sourceDuration}`)
+        Text(`${this.messageItem.sourceDuration}″`)
           .textAlign(TextAlign.Center)
         ImageAnimator()
           .images([

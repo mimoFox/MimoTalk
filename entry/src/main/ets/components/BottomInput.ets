@@ -270,7 +270,7 @@ export default struct BottomInput {
 
     requestMicPhonePermission(context, (res) => {
       if (!res) {
-        this.showVoice = false
+        this.showVoiceRec = false
         // 再次申请权限
         atManager.requestPermissionOnSetting(context, ['ohos.permission.MICROPHONE'])
           .then((data: Array<abilityAccessCtrl.GrantStatus>) => {
@@ -280,11 +280,6 @@ export default struct BottomInput {
             console.error('data:' + JSON.stringify(err));
           });
       } else {
-        // 显示蒙层
-        this.showVoiceRec = true
-
-        this.startTime()
-
         // 开始录音
         this.audioFilePath = fileCapture.createAudioFile(this.receiver.userId)
 
@@ -362,6 +357,9 @@ export default struct BottomInput {
               GestureMode.Parallel,
               LongPressGesture()
                 .onAction(() => {
+                  // 显示蒙层
+                  this.showVoiceRec = true
+                  this.startTime()
                   // 长按手势开始
                   this.checkMicPermission()
                 })
