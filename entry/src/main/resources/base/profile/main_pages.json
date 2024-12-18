@@ -2,6 +2,8 @@
   "src": [
     "pages/Index",
     "pages/chat/SingleChat",
-    "pages/payments/Receipts_Payments"
+    "pages/payments/Receipts_Payments",
+    "pages/videos/ShortVideos",
+    "pages/shake/ShakePage"
   ]
 }

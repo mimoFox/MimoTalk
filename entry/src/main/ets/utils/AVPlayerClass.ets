@@ -28,7 +28,7 @@ export class AVPlayerClass {
     })
   }
 
-  static async play(type: 'camera' | 'information' | 'send') {
+  static async play(type: 'camera' | 'information' | 'send' | 'shake') {
     // 6.再次播放也需要先回到initialized
     AVPlayerClass.player.reset()
     // 2.1准备播放地址

@@ -1,3 +1,5 @@
+import { router } from '@kit.ArkUI'
+
 @Component
 struct Find {
   @State yOffset: number = 0
@@ -12,6 +14,9 @@ struct Find {
         .width(16)
         .height(16)
         .rotate({ angle: 180 })
+        .onClick(() => {
+          rightClick && rightClick()
+        })
     }
     .width('100%')
     .padding({
@@ -47,7 +52,11 @@ struct Find {
           this.getRenderItem("直播")
           Row().height(10)
           this.getRenderItem("扫一扫")
-          this.getRenderItem("摇一摇")
+          this.getRenderItem("摇一摇", () => {
+            router.pushUrl({
+              url: "pages/shake/ShakePage"
+            })
+          })
           Row().height(10)
           this.getRenderItem("看一看")
           this.getRenderItem("搜一搜")

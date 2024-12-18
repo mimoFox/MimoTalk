@@ -25,6 +25,9 @@
             "EntryAbility"
           ]
         }
+      },
+      {
+        "name": "ohos.permission.ACCELEROMETER"
       }
     ],
     "abilities": [
